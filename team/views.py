@@ -18,12 +18,12 @@ def team_handler(request):
     try:
         if request.method == "POST":
             print(request.data)
-            required_fields = ["nama_team", "coach", "club", "kategori_team"]
+            required_fields = ["nama_team", "coach", "kategori_team"]
             if not all(key in request.data for key in required_fields):
                 return Response(
                     {
                         "code": 400,
-                        "message": "nama_team, coach, club, and kategori_team are required",
+                        "message": "nama_team, coach, and kategori_team are required",
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )

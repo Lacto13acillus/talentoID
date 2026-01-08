@@ -1,5 +1,5 @@
-import uuid
 from .repo import RepoPlayerPerformance
+
 
 class UsecasePlayerPerformance:
     @staticmethod
@@ -13,17 +13,27 @@ class UsecasePlayerPerformance:
     @staticmethod
     def get_by_match_id(match_id):
         return RepoPlayerPerformance.get_by_match_id(match_id)
+
     @staticmethod
-    def get_by_player_id(player_id):
-        return RepoPlayerPerformance.get_by_player_id(player_id_target=player_id)
+    def get_by_player_id(
+        player_id,
+        start_date,
+        end_date,
+    ):
+        return RepoPlayerPerformance.get_by_player_id(
+            player_id_target=player_id, start_date=start_date, end_date=end_date
+        )
 
     @staticmethod
     def get_by_player_id_and_match_id(player_id, match_id):
-        return RepoPlayerPerformance.get_by_player_id(player_id_target=player_id, match_id_target=match_id)
+        return RepoPlayerPerformance.get_by_player_id(
+            player_id_target=player_id, match_id_target=match_id
+        )
 
     @staticmethod
     def get_by_team_id(team_id):
         return RepoPlayerPerformance.get_by_team_id(team_id)
+
     @staticmethod
     def get_by_match_id_summary(match_id):
         return RepoPlayerPerformance.get_by_match_id_summary(match_id)

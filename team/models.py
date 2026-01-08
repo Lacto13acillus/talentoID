@@ -11,13 +11,13 @@ class team(models.Model):
     coach = models.ForeignKey(
         "ProfilCoach.ProfilCoach", on_delete=models.CASCADE, default=""
     )
-    club = models.ForeignKey(
-        "club.club",
-        on_delete=models.CASCADE,
-        null=True,  # izinkan NULL di database
-        blank=True,  # izinkan kosong di form/admin
-        default=None,  # default-nya adalah None (null))
-    )
+    # club = models.ForeignKey(
+    #     "club.club",
+    #     on_delete=models.CASCADE,
+    #     null=True,  # izinkan NULL di database
+    #     blank=True,  # izinkan kosong di form/admin
+    #     default=True,  # default-nya adalah None (null))
+    # )
     kategori_team = models.CharField(max_length=60)
     logo_team = models.ImageField(
         upload_to="team/",  # Direktori penyimpanan gambar

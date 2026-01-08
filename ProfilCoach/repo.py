@@ -182,7 +182,7 @@ class RepoProfilCoach:
                 raise ValidationError(
                     "Kata sandi harus memiliki panjang minimal 8 karakter."
                 )
-            User.password = req["password"]  # Simpan sebagai plain text
+            User.password = make_password(req["password"])  # Simpan sebagai plain text
             User.save()
 
         if "email" in req and req["email"]:
@@ -206,15 +206,10 @@ class RepoProfilCoach:
                 )
 
             # Hapus foto profil lama jika ada
-            if ProfilCoachData.foto_profil:
-                ProfilCoachData.foto_profil.delete(save=False)
-
-            # Hapus foto profil lama jika ada
             if User.foto_profil:
                 User.foto_profil.delete(save=False)
 
             # Simpan foto profil baru
-            ProfilCoachData.foto_profil = req["foto_profil"]
             User.foto_profil = req["foto_profil"]
         User.save()
 
@@ -258,15 +253,13 @@ class RepoProfilCoach:
                 }
                 for t in teams_dilatih
             ],
-            "nama_coach": ProfilCoachData.nama_coach,
+            "nama_coach": ProfilCoachData.user.nama,
             "tanggal_bergabung": ProfilCoachData.tanggal_bergabung,
             "tanggal_lahir": ProfilCoachData.tanggal_lahir,
             "kewarganegaraan": ProfilCoachData.kewarganegaraan,
             "tinggi_badan": ProfilCoachData.tinggi_badan,
             "berat_badan": ProfilCoachData.berat_badan,
-            "foto_profil": (
-                ProfilCoachData.foto_profil.url if ProfilCoachData.foto_profil else None
-            ),
+            "foto_profil": User.foto_profil.url if User.foto_profil else None,
         }
 
     @staticmethod

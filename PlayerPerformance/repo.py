@@ -7,6 +7,9 @@ from team.models import team
 from pertandingan.models import pertandingan
 from training.models import training
 from collections import defaultdict
+from django.db.models import Avg
+from django.db.models import Q
+from datetime import datetime
 
 
 class RepoPlayerPerformance:
@@ -270,9 +273,9 @@ class RepoPlayerPerformance:
             "team_coach_name": (
                 team_instance.coach.user.nama if team_instance.coach else None
             ),
-            "team_club_name": (
-                team_instance.club.club_name if team_instance.club else None
-            ),
+            # "team_club_name": (
+            #     team_instance.club.club_name if team_instance.club else None
+            # ),
             "metrics_grouped": metrics_grouped,
         }
 
@@ -325,12 +328,34 @@ class RepoPlayerPerformance:
         return {"match": match_info, "metrics": formatted_metrics}
 
     @staticmethod
-    def get_by_player_id(player_id_target=None, match_id_target=None):
+    def get_by_player_id(
+        player_id_target=None, match_id_target=None, start_date=None, end_date=None
+    ):
         performances = PlayerPerformance.objects.select_related(
             "player", "match", "training", "metric", "metric__metric_category"
         )
         if player_id_target:
             performances = performances.filter(player__player=player_id_target)
+
+        if start_date or end_date:
+            date_filter = Q()
+
+            if start_date:
+                start = datetime.fromisoformat(start_date).date()
+                date_filter &= Q(match__date__gte=start) | Q(training__date__gte=start)
+
+            if end_date:
+                end = datetime.fromisoformat(end_date).date()
+                date_filter &= Q(match__date__lte=end) | Q(training__date__lte=end)
+
+            performances = performances.filter(date_filter)
+
+        kkm_global = RepoPlayerPerformance.get_kkm_global_by_category(
+            start_date, end_date
+        )
+        kkm_player = RepoPlayerPerformance.get_kkm_player_by_category(
+            player_id_target, start_date, end_date
+        )
 
         # Simpan: {category: {context: {metric_name: value}}}
         breakdown_map = defaultdict(lambda: defaultdict(dict))
@@ -360,101 +385,124 @@ class RepoPlayerPerformance:
             # Tentukan key grouping berdasarkan match atau training
             if perf.match:
                 context_key = f"match_{perf.match.created_at}"
+                context_type = "match"
+                context_name = getattr(
+                    perf.match,
+                    "nama_pertandingan",
+                )  # Sesuaikan field name
+                context_date = perf.match.date
             elif perf.training:
                 context_key = f"training_{perf.training.training}"
+                context_type = "training"
+                context_name = getattr(
+                    perf.training,
+                    "nama_latihan",
+                )  # Sesuaikan field name
+                context_date = perf.training.date
             else:
                 continue  # Skip kalau tidak ada match/training
 
-            grouped[category][context_key][metric_name] = float(perf.value)
+            # Simpan metadata (hanya sekali per context)
+            if "metadata" not in grouped[category][context_key]:
+                grouped[category][context_key]["metadata"] = {
+                    "type": context_type,
+                    "name": context_name,
+                    "date": context_date.isoformat() if context_date else None,
+                }
+
+            # Simpan metric values
+            if "metrics" not in grouped[category][context_key]:
+                grouped[category][context_key]["metrics"] = {}
+
+            grouped[category][context_key]["metrics"][metric_name] = float(perf.value)
 
         result = defaultdict(list)
 
+        result = {}
+
         for category, contexts in grouped.items():
-            for context_key, metrics in contexts.items():
-                entry = {"context": context_key, "metrics": metrics.copy()}
+            items = []
 
-                # Jika ada pass success & pass attempt, hitung akurasi
-                if "pass success" in metrics and "pass attempt" in metrics:
-                    attempt = metrics["pass attempt"]
-                    success = metrics["pass success"]
-                    accuracy = (
-                        round((success / attempt) * 100, 2) if attempt > 0 else 0.0
-                    )
-                    entry["metrics"]["pass accuracy"] = accuracy
-                    entry["metrics"]["calculated"] = True
+            for context_key, data in contexts.items():
+                metrics = data["metrics"]
+                values = list(metrics.values())
 
-                result[category].append(entry)
+                # Category score per match (average metric)
+                category_score = round(sum(values) / len(values), 2) if values else None
+
+                items.append(
+                    {
+                        "context": context_key,
+                        "type": data["metadata"]["type"],
+                        "name": data["metadata"]["name"],
+                        "date": data["metadata"]["date"],
+                        "category_score": category_score,
+                        "passed_global": (
+                            category_score >= kkm_global.get(category)
+                            if category_score is not None
+                            and kkm_global.get(category) is not None
+                            else None
+                        ),
+                        "passed_player": (
+                            category_score >= kkm_player.get(category)
+                            if category_score is not None
+                            and kkm_player.get(category) is not None
+                            else None
+                        ),
+                        "metrics": metrics,
+                    }
+                )
+
+            result[category] = {
+                "kkm": {
+                    "global": kkm_global.get(category),
+                    "player": kkm_player.get(category),
+                },
+                "items": items,
+            }
 
         return result
 
-        if match_id_target:
-            performances = performances.filter(match__match=match_id_target)
+    @staticmethod
+    def get_kkm_global_by_category(start_date=None, end_date=None):
+        qs = PlayerPerformance.objects.all()
 
-        if player_id_target:
-            performances = performances.filter(player__player=player_id_target)
+        if start_date or end_date:
+            qs = qs.filter(RepoPlayerPerformance._date_filter_q(start_date, end_date))
 
-        if not performances.exists():
-            return None if player_id_target else []
+        qs = qs.values("metric__metric_category__name").annotate(kkm=Avg("value"))
 
-        players_data = defaultdict(
-            lambda: {
-                "player_name": "",
-                "foto_profil": "",
-                "kewarganegaraan": "",
-                "posisi": "",
-                "metrics": [],
-            }
-        )
+        return {
+            row["metric__metric_category__name"]: round(float(row["kkm"]), 2)
+            for row in qs
+        }
 
-        for perf in performances:
-            player_id = str(perf.player.player)
+    @staticmethod
+    def get_kkm_player_by_category(player_id, start_date=None, end_date=None):
+        qs = PlayerPerformance.objects.filter(player__player=player_id)
 
-            players_data[player_id]["player_name"] = perf.player.nama
-            players_data[player_id]["foto_profil"] = (
-                perf.player.foto_profil.url if perf.player.foto_profil else ""
-            )
-            players_data[player_id]["kewarganegaraan"] = perf.player.kewarganegaraan
-            players_data[player_id]["posisi"] = perf.player.posisi
+        if start_date or end_date:
+            qs = qs.filter(RepoPlayerPerformance._date_filter_q(start_date, end_date))
 
-            players_data[player_id]["metrics"].append(
-                {
-                    "metric_category_name": perf.metric.metric_category.name,
-                    "metric_name": perf.metric.name,
-                    "value": perf.value,
-                    "created_at": perf.created_at,
-                }
-            )
+        qs = qs.values("metric__metric_category__name").annotate(kkm=Avg("value"))
 
-        for player_id, data in players_data.items():
-            data["metrics"].sort(
-                key=lambda x: (x["metric_category_name"], x["created_at"]), reverse=True
-            )
+        return {
+            row["metric__metric_category__name"]: round(float(row["kkm"]), 2)
+            for row in qs
+        }
 
-        result = [
-            {
-                "player_id": player_id,
-                "player_name": data["player_name"],
-                "foto_profil": data["foto_profil"],
-                "kewarganegaraan": data["kewarganegaraan"],
-                "posisi": data["posisi"],
-                "passing_accuracy": RepoPlayerPerformance.calculate_accuracy(
-                    data["metrics"], "Pass Success", "Pass Attempted"
-                ),
-                "dribble_accuracy": RepoPlayerPerformance.calculate_accuracy(
-                    data["metrics"], "Dribble Success", "Dribble Attempted"
-                ),
-                "cross_accuracy": RepoPlayerPerformance.calculate_accuracy(
-                    data["metrics"], "Cross Success", "Cross Total"
-                ),
-                "shots_on_target": RepoPlayerPerformance.calculate_accuracy(
-                    data["metrics"], "Shots on Target", "Shots Total"
-                ),
-                "metrics": data["metrics"],
-            }
-            for player_id, data in players_data.items()
-        ]
+    def _date_filter_q(start_date=None, end_date=None):
+        q = Q()
 
-        return result[0] if player_id_target and result else result
+        if start_date:
+            start = datetime.fromisoformat(start_date).date()
+            q &= Q(match__date__gte=start) | Q(training__date__gte=start)
+
+        if end_date:
+            end = datetime.fromisoformat(end_date).date()
+            q &= Q(match__date__lte=end) | Q(training__date__lte=end)
+
+        return q
 
     @staticmethod
     def get_by_id(performance_id):

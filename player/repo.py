@@ -13,7 +13,9 @@ from xendit.apis import InvoiceApi
 from xendit.invoice.model.create_invoice_request import CreateInvoiceRequest
 
 # See configuration.py for a list of all supported configuration parameters.
-xendit.set_api_key('xnd_development_aj3dzlFih33YWSC24U6eLukOxX8uXU5tecRqd0IXtjmsbBTrs2HjxcvVWLoBZ5')
+xendit.set_api_key(
+    "xnd_development_aj3dzlFih33YWSC24U6eLukOxX8uXU5tecRqd0IXtjmsbBTrs2HjxcvVWLoBZ5"
+)
 
 
 class RepoPlayer:
@@ -53,7 +55,9 @@ class RepoPlayer:
                 )
 
             foto_profil = req["foto_profil"]
-            file_extension = foto_profil.name.split(".")[-1].lower()  # Ambil ekstensi file
+            file_extension = foto_profil.name.split(".")[
+                -1
+            ].lower()  # Ambil ekstensi file
 
             # Validasi ekstensi file
             if file_extension not in allowed_extensions:
@@ -93,9 +97,9 @@ class RepoPlayer:
                 kelamin=req["kelamin"],
                 foto_profil=req.get("foto_profil", None),
                 external_id=external_id,
-                amount = amount,
-                expiry_date = api_response.expiry_date,
-                invoice_url = api_response.invoice_url
+                amount=amount,
+                expiry_date=api_response.expiry_date,
+                invoice_url=api_response.invoice_url,
             )
             return {
                 "user": {
@@ -103,7 +107,9 @@ class RepoPlayer:
                     "nama": new_user.nama,
                     "email": new_user.email,
                     "nomor_telepon": new_user.nomor_telepon,
-                    "foto_profil": new_user.foto_profil.url if user.foto_profil else None,
+                    "foto_profil": (
+                        new_user.foto_profil.url if user.foto_profil else None
+                    ),
                     "role": new_user.role,
                 },
                 "player": new_player.player,
@@ -113,7 +119,7 @@ class RepoPlayer:
                 "team_id": Tim.team,
                 "team": {
                     "team": Tim.team,
-                    "club": Tim.club.club,
+                    # "club": Tim.club.club,
                     "coach": Tim.coach.coach,
                     "nama_team": Tim.nama_team,
                     "kategori_team": Tim.kategori_team,
@@ -127,22 +133,19 @@ class RepoPlayer:
                 "kelamin": new_player.kelamin,
                 "verification_status": new_player.verification_status,
                 "payment_status": new_player.payment_status,
-                "foto_profil": new_user.foto_profil.url if new_user.foto_profil else None,
+                "foto_profil": (
+                    new_user.foto_profil.url if new_user.foto_profil else None
+                ),
                 "external_id": new_player.external_id,
                 "amount": new_player.amount,
                 "expiry_date": new_player.expiry_date,
-                "invoice_url": new_player.invoice_url
+                "invoice_url": new_player.invoice_url,
             }
 
         except xendit.XenditSdkException as e:
             print("Exception when calling InvoiceApi->create_invoice:", e)
 
-            return {
-                "code": 500,
-                "message": "Failed to create invoice",
-                "error": str(e)
-            }
-
+            return {"code": 500, "message": "Failed to create invoice", "error": str(e)}
 
     @staticmethod
     def get(player_id):
@@ -165,7 +168,7 @@ class RepoPlayer:
             "team_id": player_data.tim.team,
             "team": {
                 "team": player_data.tim.team,
-                "club": player_data.tim.club.club,
+                # "club": player_data.tim.club.club,
                 "coach": player_data.tim.coach.coach,
                 "nama_team": player_data.tim.nama_team,
                 "kategori_team": player_data.tim.kategori_team,
@@ -208,7 +211,7 @@ class RepoPlayer:
                 "team_id": p.tim.team,
                 "team": {
                     "team": p.tim.team,
-                    "club": p.tim.club.club,
+                    # "club": p.tim.club.club,
                     "coach": p.tim.coach.coach,
                     "nama_team": p.tim.nama_team,
                     "kategori_team": p.tim.kategori_team,
@@ -249,7 +252,7 @@ class RepoPlayer:
                 "team_id": p.tim.team,
                 "team": {
                     "team": p.tim.team,
-                    "club": p.tim.club.club,
+                    # "club": p.tim.club.club,
                     "coach": p.tim.coach.coach,
                     "nama_team": p.tim.nama_team,
                     "kategori_team": p.tim.kategori_team,
@@ -330,7 +333,7 @@ class RepoPlayer:
             "team_id": PlayerData.tim.team,
             "team": {
                 "team": Tim.team,
-                "club": Tim.club.club,
+                # "club": Tim.club.club,
                 "coach": Tim.coach.coach,
                 "nama_team": Tim.nama_team,
                 "kategori_team": Tim.kategori_team,

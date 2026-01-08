@@ -2,7 +2,6 @@ from django.shortcuts import get_object_or_404
 from .models import team
 from django.core.exceptions import ValidationError
 from ProfilCoach.models import ProfilCoach
-from club.models import club
 from player.models import player
 
 
@@ -23,13 +22,13 @@ class RepoTeam:
             )
 
         Coach = get_object_or_404(ProfilCoach, coach=req["coach"])
-        club_instance = get_object_or_404(club, club=req["club"])
+        # club_instance = get_object_or_404(club, club=req["club"])
 
         new_team = team.objects.create(
             team=req["team"],
             nama_team=req["nama_team"],
             coach=Coach,
-            club=club_instance,
+            # club=club_instance,
             kategori_team=req["kategori_team"],
             logo_team=req.get("logo_team", None),
         )
@@ -38,9 +37,9 @@ class RepoTeam:
             "team": new_team.team,
             "nama_team": new_team.nama_team,
             "coach": new_team.coach.coach,
-            "club": new_team.club.club,
+            # "club": new_team.club.club,
             "coach_name": new_team.coach.user.nama,
-            "club_name": new_team.club.club_name,
+            # "club_name": new_team.club.club_name,
             "kategori_team": new_team.kategori_team,
             "logo_team": new_team.logo_team.url if new_team.logo_team else None,
         }
@@ -55,9 +54,9 @@ class RepoTeam:
             "team": team_data.team,
             "nama_team": team_data.nama_team,
             "coach": team_data.coach.coach,
-            "club": team_data.club.club,
+            # "club": team_data.club.club,
             "coach_name": team_data.coach.user.nama,
-            "club_name": team_data.club.club_name,
+            # "club_name": team_data.club.club_name,
             "kategori_team": team_data.kategori_team,
             "logo_team": team_data.logo_team.url if team_data.logo_team else None,
             "stats": team_stats,  # Add team stats to the response
@@ -71,9 +70,9 @@ class RepoTeam:
                 "team": team_data.team,
                 "nama_team": team_data.nama_team,
                 "coach": team_data.coach.coach,
-                "club": team_data.club.club,
+                # "club": team_data.club.club,
                 "coach_name": team_data.coach.user.nama,
-                "club_name": team_data.club.club_name,
+                # "club_name": team_data.club.club_name,
                 "kategori_team": team_data.kategori_team,
                 "logo_team": team_data.logo_team.url if team_data.logo_team else None,
                 "stats": RepoTeam.get_team_stats_by_team_id(
@@ -91,9 +90,9 @@ class RepoTeam:
                 "team": team_data.team,
                 "nama_team": team_data.nama_team,
                 "coach": team_data.coach.coach,
-                "club": team_data.club.club,
+                # "club": team_data.club.club,
                 "coach_name": team_data.coach.user.nama,
-                "club_name": team_data.club.club_name,
+                # "club_name": team_data.club.club_name,
                 "kategori_team": team_data.kategori_team,
                 "logo_team": team_data.logo_team.url if team_data.logo_team else None,
                 "stats": RepoTeam.get_team_stats_by_team_id(
@@ -150,11 +149,11 @@ class RepoTeam:
             "team": team_instance.team,
             "nama_team": team_instance.nama_team,
             "coach": team_instance.coach.coach if team_instance.coach else None,
-            "club": team_instance.club.club if team_instance.club else None,
+            # "club": team_instance.club.club if team_instance.club else None,
             "coach_name": (
                 team_instance.coach.user.nama if team_instance.coach else None
             ),
-            "club_name": team_instance.club.club_name if team_instance.club else None,
+            # "club_name": team_instance.club.club_name if team_instance.club else None,
             "kategori_team": team_instance.kategori_team,
             "logo_team": (
                 team_instance.logo_team.url if team_instance.logo_team else None
