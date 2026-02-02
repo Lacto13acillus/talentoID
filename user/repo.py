@@ -151,21 +151,25 @@ class RepoUser:
         if not user_data.is_active:
             raise ValueError("User not found.")
 
-        refresh = RefreshToken.for_user(user_data)
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-
-        # Kondisi untuk userId sesuai role
         if user_data.role == "coach":
             first_coach = ProfilCoach.objects.filter(user=user_data).first()
             id_coach = first_coach.coach if first_coach else None
             userId = id_coach
         elif user_data.role == "player":
             first_player = player.objects.filter(user=user_data).first()
+            verification_status = (
+                first_player.verification_status if first_player else None
+            )
+            if verification_status != "Verified":
+                raise ValueError("please wait until your account is verified")
             id_player = first_player.player if first_player else None
             userId = id_player
         else:
             userId = user_data.id_user
+
+        refresh = RefreshToken.for_user(user_data)
+        access_token = str(refresh.access_token)
+        refresh_token = str(refresh)
 
         return {
             "id": userId,

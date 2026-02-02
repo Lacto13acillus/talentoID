@@ -67,6 +67,7 @@ from Metric.views import metric_handler
 from PlayerPerformance.views import player_performance_handler
 from player.views import xendit_handler
 from user.views import delete_account_handler
+from payments.views import get_payment_channels
 
 urlpatterns = [
     re_path("admin/", admin.site.urls),
@@ -122,6 +123,12 @@ urlpatterns = [
     re_path("api/metric", metric_handler),
     re_path(r"^api/player-performance$", player_performance_handler),
     re_path(r"^api/xendit-callback$", xendit_handler),
+    re_path("api/payment/channels", get_payment_channels, name="get_payment_channels"),
+    # path(
+    #     "api/payment/status/<str:external_id>",
+    #     check_payment_status,
+    #     name="check_payment_status",
+    # ),
 ]
 
 if settings.DEBUG:

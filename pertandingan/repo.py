@@ -565,6 +565,7 @@ class RepoPertandingan:
 
     @staticmethod
     def get_pertandingan_by_player(player_id):
+        print("get_pertandingan_by_player player_id", player_id)
         result = []
         player_result = player.objects.get(player=player_id)
         if player_result.verification_status != "Verified":

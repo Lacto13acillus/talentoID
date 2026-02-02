@@ -292,6 +292,7 @@ class RepoTraining:
 
     @staticmethod
     def get_by_player(player_id):
+        print("player_id", player_id)
         player_result = player.objects.get(player=player_id)
         if player_result.verification_status != "Verified":
             return []

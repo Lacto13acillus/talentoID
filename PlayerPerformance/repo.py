@@ -384,7 +384,7 @@ class RepoPlayerPerformance:
 
             # Tentukan key grouping berdasarkan match atau training
             if perf.match:
-                context_key = f"match_{perf.match.created_at}"
+                context_key = f"match_{perf.match.match}"
                 context_type = "match"
                 context_name = getattr(
                     perf.match,

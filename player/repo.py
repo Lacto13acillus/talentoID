@@ -9,8 +9,7 @@ from rest_framework import status as http_status
 from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 import xendit
-from xendit.apis import InvoiceApi
-from xendit.invoice.model.create_invoice_request import CreateInvoiceRequest
+from player.services.payment_service import create_registration_invoice
 
 # See configuration.py for a list of all supported configuration parameters.
 xendit.set_api_key(
@@ -24,26 +23,33 @@ class RepoPlayer:
 
         # generate unique external_id
         email = req["email"]
-        external_id = f"register_{uuid.uuid4().hex[:6]}_{email}"
+        # external_id = f"register_{uuid.uuid4().hex[:6]}_{email}"
 
         # Enter a context with an instance of the API client
-        api_client = xendit.ApiClient()
+        # api_client = xendit.ApiClient()
 
         # Create an instance of the API class
-        api_instance = InvoiceApi(api_client)
+        # api_instance = InvoiceApi(api_client)
 
-        amount = float(100000)
-        create_invoice_request = CreateInvoiceRequest(
-            external_id=external_id,
-            payer_email=email,
-            description="Pendaftaran Pemain",
-            amount=amount,
-        )
+        # amount = float(100000)
+        # create_invoice_request = CreateInvoiceRequest(
+        #     external_id=external_id,
+        #     payer_email=email,
+        #     description="Pendaftaran Pemain",
+        #     amount=amount,
+        # )
 
         try:
+
+            payment = create_registration_invoice(
+                email=email,
+                payment_channel_code=req["payment_channel"],
+                payment_method=req["payment_method"],
+                base_amount=100_000,
+            )
             # Panggil API Xendit untuk membuat invoice
-            api_response = api_instance.create_invoice(create_invoice_request)
-            print("api_response", api_response)
+            # api_response = api_instance.create_invoice(create_invoice_request)
+            print("payment_response", payment)
 
             allowed_extensions = ["jpg", "jpeg", "png", "gif"]
 
@@ -96,10 +102,10 @@ class RepoPlayer:
                 dob=req["dob"],
                 kelamin=req["kelamin"],
                 foto_profil=req.get("foto_profil", None),
-                external_id=external_id,
-                amount=amount,
-                expiry_date=api_response.expiry_date,
-                invoice_url=api_response.invoice_url,
+                external_id=payment["external_id"],
+                amount=payment["amount"],
+                expiry_date=payment["expiry_date"],
+                invoice_url=payment["invoice_url"],
             )
             return {
                 "user": {

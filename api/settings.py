@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     "MetricCategory",
     "Metric",
     "PlayerPerformance",
+    "payments",
 ]
 
 MIDDLEWARE = [
