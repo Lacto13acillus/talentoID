@@ -16,6 +16,7 @@ import re
 from django.utils.dateparse import parse_date
 from django.core.exceptions import ValidationError
 import uuid
+from django.utils import timezone
 
 
 class RepoPertandingan:
@@ -135,7 +136,6 @@ class RepoPertandingan:
             "player__posisi",
             "player__nomor_punggung",
             "player__foto_profil",
-            "player__kewarganegaraan",
             "index",
             "status",
         )
@@ -147,7 +147,6 @@ class RepoPertandingan:
                     "nama": item["player__nama"],
                     "posisi": item["player__posisi"],
                     "nomor_punggung": item["player__nomor_punggung"],
-                    "kewarganegaraan": item["player__kewarganegaraan"],
                     "foto_profil": (
                         f"/media/{item['player__foto_profil']}"
                         if item["player__foto_profil"]
@@ -242,7 +241,6 @@ class RepoPertandingan:
             "player__posisi",
             "player__nomor_punggung",
             "player__foto_profil",
-            "player__kewarganegaraan",
             "index",
             "status",
         )
@@ -254,7 +252,6 @@ class RepoPertandingan:
                     "nama": item["player__nama"],
                     "posisi": item["player__posisi"],
                     "nomor_punggung": item["player__nomor_punggung"],
-                    "kewarganegaraan": item["player__kewarganegaraan"],
                     "foto_profil": (
                         f"/media/{item['player__foto_profil']}"
                         if item["player__foto_profil"]
@@ -345,7 +342,6 @@ class RepoPertandingan:
                 "player__posisi",
                 "player__nomor_punggung",
                 "player__foto_profil",
-                "player__kewarganegaraan",
                 "index",
                 "status",
             )
@@ -357,7 +353,6 @@ class RepoPertandingan:
                         "nama": item["player__nama"],
                         "posisi": item["player__posisi"],
                         "nomor_punggung": item["player__nomor_punggung"],
-                        "kewarganegaraan": item["player__kewarganegaraan"],
                         "foto_profil": (
                             f"/media/{item['player__foto_profil']}"
                             if item["player__foto_profil"]
@@ -442,24 +437,33 @@ class RepoPertandingan:
         return result
 
     @staticmethod
-    def get_pertandingan_by_coach(coach_id):
+    def get_pertandingan_by_coach(coach_id, status_param=None):
+
         teams_dilatih = team.objects.filter(coach=coach_id)
-        pertandingan_list = pertandingan.objects.filter(
-            Q(tim_home__in=teams_dilatih) | Q(tim_away__in=teams_dilatih)
-        )
+
+        pertandingan_list = pertandingan.objects.select_related(
+            "tim_home",
+            "tim_away",
+            "lokasi",
+            "status",
+            "season",
+            "formasi",
+            "jadwal",
+        ).filter(Q(tim_home__in=teams_dilatih) | Q(tim_away__in=teams_dilatih))
+
+        # =========================
+        # FILTER STATUS (OPTIONAL)
+        # =========================
+        if status_param == "upcoming":
+            today = timezone.now().date()
+            pertandingan_list = pertandingan_list.filter(
+                status__match_status="Preparing", date__gte=today
+            )
 
         result = []
-        for pertandingan_data in pertandingan_list:
-            TeamHome = get_object_or_404(team, team=pertandingan_data.tim_home.team)
-            TeamAway = get_object_or_404(team, team=pertandingan_data.tim_away.team)
-            Schedule = pertandingan_data.jadwal
-            Stadion = get_object_or_404(
-                stadion, stadion=pertandingan_data.lokasi.stadion
-            )
-            Status = get_object_or_404(status, status=pertandingan_data.status.status)
-            Season = get_object_or_404(season, season=pertandingan_data.season.season)
 
-            # Fetch LineUp data for the match
+        for pertandingan_data in pertandingan_list:
+
             lineup_data = LineUp.objects.filter(match=pertandingan_data).values(
                 "id_lineup",
                 "player__player",
@@ -467,10 +471,10 @@ class RepoPertandingan:
                 "player__posisi",
                 "player__nomor_punggung",
                 "player__foto_profil",
-                "player__kewarganegaraan",
                 "index",
                 "status",
             )
+
             lineup_response = [
                 {
                     "id_lineup": item["id_lineup"],
@@ -479,7 +483,6 @@ class RepoPertandingan:
                         "nama": item["player__nama"],
                         "posisi": item["player__posisi"],
                         "nomor_punggung": item["player__nomor_punggung"],
-                        "kewarganegaraan": item["player__kewarganegaraan"],
                         "foto_profil": (
                             f"/media/{item['player__foto_profil']}"
                             if item["player__foto_profil"]
@@ -493,27 +496,29 @@ class RepoPertandingan:
             ]
 
             formasi_data = None
-            if pertandingan_data.formasi:  # Diubah dari formation_team_home
+            if pertandingan_data.formasi:
                 formasi_data = {
                     "id_formasi": pertandingan_data.formasi.id_formasi,
                     "formasi": pertandingan_data.formasi.formasi,
                 }
 
             schedule_data = None
-            if Schedule:
+            if pertandingan_data.jadwal:
                 schedule_data = {
-                    "schedule": Schedule.schedule,
+                    "schedule": pertandingan_data.jadwal.schedule,
                     "tanggal": (
-                        Schedule.tanggal.isoformat() if Schedule.tanggal else None
+                        pertandingan_data.jadwal.tanggal.isoformat()
+                        if pertandingan_data.jadwal.tanggal
+                        else None
                     ),
                     "start_time": (
-                        Schedule.start_time.strftime("%H:%M:%S")
-                        if Schedule.start_time
+                        pertandingan_data.jadwal.start_time.strftime("%H:%M:%S")
+                        if pertandingan_data.jadwal.start_time
                         else None
                     ),
                     "end_time": (
-                        Schedule.end_time.strftime("%H:%M:%S")
-                        if Schedule.end_time
+                        pertandingan_data.jadwal.end_time.strftime("%H:%M:%S")
+                        if pertandingan_data.jadwal.end_time
                         else None
                     ),
                 }
@@ -522,45 +527,50 @@ class RepoPertandingan:
                 {
                     "match": pertandingan_data.match,
                     "nama_pertandingan": pertandingan_data.nama_pertandingan,
-                    "team_home_id": TeamHome.team,
+                    "team_home_id": pertandingan_data.tim_home.team,
                     "team_home": {
-                        "team": TeamHome.team,
-                        "nama_team": TeamHome.nama_team,
-                        "kategori_team": TeamHome.kategori_team,
+                        "team": pertandingan_data.tim_home.team,
+                        "nama_team": pertandingan_data.tim_home.nama_team,
+                        "kategori_team": pertandingan_data.tim_home.kategori_team,
                         "logo_team": (
-                            TeamHome.logo_team.url if TeamHome.logo_team else None
+                            pertandingan_data.tim_home.logo_team.url
+                            if pertandingan_data.tim_home.logo_team
+                            else None
                         ),
                     },
                     "team_away": {
-                        "team": TeamAway.team,
-                        "nama_team": TeamAway.nama_team,
-                        "kategori_team": TeamAway.kategori_team,
+                        "team": pertandingan_data.tim_away.team,
+                        "nama_team": pertandingan_data.tim_away.nama_team,
+                        "kategori_team": pertandingan_data.tim_away.kategori_team,
                         "logo_team": (
-                            TeamAway.logo_team.url if TeamAway.logo_team else None
+                            pertandingan_data.tim_away.logo_team.url
+                            if pertandingan_data.tim_away.logo_team
+                            else None
                         ),
                     },
-                    "formasi": formasi_data,  # Diubah dari formation_team_home
+                    "formasi": formasi_data,
                     "lineup": lineup_response,
                     "schedule": schedule_data,
                     "stadion": {
-                        "stadion": Stadion.stadion,
-                        "nama_stadion": Stadion.nama_stadion,
-                        "lokasi": Stadion.lokasi,
+                        "stadion": pertandingan_data.lokasi.stadion,
+                        "nama_stadion": pertandingan_data.lokasi.nama_stadion,
+                        "lokasi": pertandingan_data.lokasi.lokasi,
                     },
-                    "status_id": Status.status,
+                    "status_id": pertandingan_data.status.status,
                     "status": {
-                        "status": Status.status,
-                        "match_status": Status.match_status,
+                        "status": pertandingan_data.status.status,
+                        "match_status": pertandingan_data.status.match_status,
                     },
                     "season": {
-                        "season": Season.season,
-                        "nama_season": Season.nama_season,
+                        "season": pertandingan_data.season.season,
+                        "nama_season": pertandingan_data.season.nama_season,
                     },
                     "date": pertandingan_data.date.isoformat(),
                     "start_time": pertandingan_data.start_time.strftime("%H:%M"),
                     "end_time": pertandingan_data.end_time.strftime("%H:%M"),
                 }
             )
+
         return result
 
     @staticmethod
@@ -570,6 +580,8 @@ class RepoPertandingan:
         player_result = player.objects.get(player=player_id)
         if player_result.verification_status != "Verified":
             return []
+        # if player_result.membership_status == "EXPIRED":
+        #     return []
 
         team_player = player_result.tim
         pertandingan_list = pertandingan.objects.filter(
@@ -593,7 +605,6 @@ class RepoPertandingan:
                 "player__posisi",
                 "player__nomor_punggung",
                 "player__foto_profil",
-                "player__kewarganegaraan",
                 "index",
                 "status",
             )
@@ -605,7 +616,6 @@ class RepoPertandingan:
                         "nama": item["player__nama"],
                         "posisi": item["player__posisi"],
                         "nomor_punggung": item["player__nomor_punggung"],
-                        "kewarganegaraan": item["player__kewarganegaraan"],
                         "foto_profil": (
                             f"/media/{item['player__foto_profil']}"
                             if item["player__foto_profil"]
@@ -713,7 +723,6 @@ class RepoPertandingan:
                 "player__posisi",
                 "player__nomor_punggung",
                 "player__foto_profil",
-                "player__kewarganegaraan",
                 "index",
                 "status",
             )
@@ -725,7 +734,6 @@ class RepoPertandingan:
                         "nama": item["player__nama"],
                         "posisi": item["player__posisi"],
                         "nomor_punggung": item["player__nomor_punggung"],
-                        "kewarganegaraan": item["player__kewarganegaraan"],
                         "foto_profil": (
                             f"/media/{item['player__foto_profil']}"
                             if item["player__foto_profil"]
@@ -881,7 +889,6 @@ class RepoPertandingan:
             "player__posisi",
             "player__nomor_punggung",
             "player__foto_profil",
-            "player__kewarganegaraan",
             "index",
             "status",
         )
@@ -893,7 +900,6 @@ class RepoPertandingan:
                     "nama": item["player__nama"],
                     "posisi": item["player__posisi"],
                     "nomor_punggung": item["player__nomor_punggung"],
-                    "kewarganegaraan": item["player__kewarganegaraan"],
                     "foto_profil": (
                         f"/media/{item['player__foto_profil']}"
                         if item["player__foto_profil"]

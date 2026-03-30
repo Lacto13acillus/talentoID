@@ -88,6 +88,8 @@ INSTALLED_APPS = [
     "Metric",
     "PlayerPerformance",
     "payments",
+    "tournament",
+    "wilayah",
 ]
 
 MIDDLEWARE = [

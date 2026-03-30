@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from django.contrib.auth.hashers import make_password
 import xendit
 from player.services.payment_service import create_registration_invoice
+from wilayah.models import Kabupaten
 
 # See configuration.py for a list of all supported configuration parameters.
 xendit.set_api_key(
@@ -20,6 +21,8 @@ xendit.set_api_key(
 class RepoPlayer:
     @staticmethod
     def post(req):
+
+        print("req", req)
 
         # generate unique external_id
         email = req["email"]
@@ -88,12 +91,22 @@ class RepoPlayer:
                 role=req.get("role", "player"),
             )
 
+            kabupaten_instance = None
+            if req.get("kode_kabupaten"):
+                kabupaten_instance = Kabupaten.objects.filter(
+                    kode=req["kode_kabupaten"]
+                ).first()
+
+                if not kabupaten_instance:
+                    raise ValidationError("Kode kabupaten tidak valid.")
+
             new_player = player.objects.create(
                 user=new_user,
                 player=req["player"],
                 nama=req["nama"],
                 posisi=req["posisi"],
-                kewarganegaraan=req["kewarganegaraan"],
+                # kewarganegaraan=req["kewarganegaraan"],
+                kabupaten=kabupaten_instance,
                 tim=Tim,
                 nomor_punggung=req["nomor_punggung"],
                 tinggi_badan=req["tinggi_badan"],
@@ -121,7 +134,7 @@ class RepoPlayer:
                 "player": new_player.player,
                 "nama": new_player.nama,
                 "posisi": new_player.posisi,
-                "kewarganegaraan": new_player.kewarganegaraan,
+                # "kewarganegaraan": new_player.kewarganegaraan,
                 "team_id": Tim.team,
                 "team": {
                     "team": Tim.team,
@@ -146,6 +159,12 @@ class RepoPlayer:
                 "amount": new_player.amount,
                 "expiry_date": new_player.expiry_date,
                 "invoice_url": new_player.invoice_url,
+                "wilayah": {
+                    "kabupaten_kode": new_player.kabupaten_kode,
+                    "kabupaten_name": new_player.kabupaten_name,
+                    "provinsi_kode": new_player.provinsi_kode,
+                    "provinsi_name": new_player.provinsi_name,
+                },
             }
 
         except xendit.XenditSdkException as e:
@@ -170,7 +189,7 @@ class RepoPlayer:
             "player": player_data.player,
             "nama": player_data.nama,
             "posisi": player_data.posisi,
-            "kewarganegaraan": player_data.kewarganegaraan,
+            # "kewarganegaraan": player_data.kewarganegaraan,
             "team_id": player_data.tim.team,
             "team": {
                 "team": player_data.tim.team,
@@ -190,6 +209,14 @@ class RepoPlayer:
             "dob": player_data.dob,
             "verification_status": player_data.verification_status,
             "payment_status": player_data.payment_status,
+            "membership_status": player_data.membership_status,
+            "end_date": player_data.end_date,
+            "wilayah": {
+                "kabupaten_kode": player_data.kabupaten_kode,
+                "kabupaten_name": player_data.kabupaten_name,
+                "provinsi_kode": player_data.provinsi_kode,
+                "provinsi_name": player_data.provinsi_name,
+            },
             "foto_profil": (
                 player_data.foto_profil.url if player_data.foto_profil else None
             ),
@@ -213,7 +240,7 @@ class RepoPlayer:
                 "player": p.player,
                 "nama": p.nama,
                 "posisi": p.posisi,
-                "kewarganegaraan": p.kewarganegaraan,
+                # "kewarganegaraan": p.kewarganegaraan,
                 "team_id": p.tim.team,
                 "team": {
                     "team": p.tim.team,
@@ -232,13 +259,24 @@ class RepoPlayer:
                 "verification_status": p.verification_status,
                 "payment_status": p.payment_status,
                 "foto_profil": p.foto_profil.url if p.foto_profil else None,
+                "membership_status": p.membership_status,
+                "end_date": p.end_date,
+                "wilayah": {
+                    "kabupaten_kode": p.kabupaten_kode,
+                    "kabupaten_name": p.kabupaten_name,
+                    "provinsi_kode": p.provinsi_kode,
+                    "provinsi_name": p.provinsi_name,
+                },
             }
             for p in players
         ]
 
     @staticmethod
     def get_all_players_by_team_id(team_id):
-        players = player.objects.filter(tim=team_id)
+        # Get all players for the team
+        all_players = player.objects.filter(tim=team_id)
+
+        # Filter and format in one step using list comprehension
         return [
             {
                 "user": {
@@ -254,11 +292,10 @@ class RepoPlayer:
                 "player": p.player,
                 "nama": p.nama,
                 "posisi": p.posisi,
-                "kewarganegaraan": p.kewarganegaraan,
+                # "kewarganegaraan": p.kewarganegaraan,
                 "team_id": p.tim.team,
                 "team": {
                     "team": p.tim.team,
-                    # "club": p.tim.club.club,
                     "coach": p.tim.coach.coach,
                     "nama_team": p.tim.nama_team,
                     "kategori_team": p.tim.kategori_team,
@@ -273,8 +310,17 @@ class RepoPlayer:
                 "verification_status": p.verification_status,
                 "payment_status": p.payment_status,
                 "foto_profil": p.foto_profil.url if p.foto_profil else None,
+                "membership_status": p.membership_status,
+                "end_date": p.end_date,
+                "wilayah": {
+                    "kabupaten_kode": p.kabupaten_kode,
+                    "kabupaten_name": p.kabupaten_name,
+                    "provinsi_kode": p.provinsi_kode,
+                    "provinsi_name": p.provinsi_name,
+                },
             }
-            for p in players
+            for p in all_players
+            if p.membership_status != "EXPIRED"  # Filter condition
         ]
 
     @staticmethod
@@ -288,9 +334,9 @@ class RepoPlayer:
         # PlayerData.user = User
         PlayerData.nama = req.get("nama", PlayerData.nama)
         PlayerData.posisi = req.get("posisi", PlayerData.posisi)
-        PlayerData.kewarganegaraan = req.get(
-            "kewarganegaraan", PlayerData.kewarganegaraan
-        )
+        # PlayerData.kewarganegaraan = req.get(
+        #     "kewarganegaraan", PlayerData.kewarganegaraan
+        # )
         PlayerData.tim = Tim
         PlayerData.nomor_punggung = req.get("nomor_punggung", PlayerData.nomor_punggung)
         PlayerData.tinggi_badan = req.get("tinggi_badan", PlayerData.tinggi_badan)
@@ -319,6 +365,19 @@ class RepoPlayer:
             # Update logo_team
             PlayerData.foto_profil = foto_profil
 
+        if "kode_kabupaten" in req:
+            if req["kode_kabupaten"]:
+                kabupaten_instance = Kabupaten.objects.filter(
+                    kode=req["kode_kabupaten"]
+                ).first()
+
+                if not kabupaten_instance:
+                    raise ValidationError("Kode kabupaten tidak valid.")
+
+                PlayerData.kabupaten = kabupaten_instance
+            else:
+                PlayerData.kabupaten = None
+
         PlayerData.save()
 
         return {
@@ -335,7 +394,7 @@ class RepoPlayer:
             "player": PlayerData.player,
             "nama": PlayerData.nama,
             "posisi": PlayerData.posisi,
-            "kewarganegaraan": PlayerData.kewarganegaraan,
+            # "kewarganegaraan": PlayerData.kewarganegaraan,
             "team_id": PlayerData.tim.team,
             "team": {
                 "team": Tim.team,
@@ -353,6 +412,12 @@ class RepoPlayer:
             "dob": PlayerData.dob,
             "verification_status": PlayerData.verification_status,
             "payment_status": PlayerData.payment_status,
+            "wilayah": {
+                "kabupaten_kode": PlayerData.kabupaten_kode,
+                "kabupaten_name": PlayerData.kabupaten_name,
+                "provinsi_kode": PlayerData.provinsi_kode,
+                "provinsi_name": PlayerData.provinsi_name,
+            },
             "foto_profil": (
                 PlayerData.foto_profil.url if PlayerData.foto_profil else None
             ),
@@ -363,3 +428,52 @@ class RepoPlayer:
         PlayerData = get_object_or_404(player, player=req["player"])
         PlayerData.delete()
         return {"message": f"Player with id {req['player']} has been deleted."}
+
+    @staticmethod
+    def renew(req):
+        # player_id = request.data.get("player")
+        player_id = req["player"]
+
+        player_data = get_object_or_404(player, player=player_id)
+
+        if not player_data:
+            return {"message": "Player not found"}
+
+        # Optional: hanya boleh renew kalau sudah pernah bayar
+        if not player_data.paid_at:
+            return {"message": "Membership not active yet"}
+
+        # 🔥 CEK STATUS MEMBERSHIP - EXPIRED TIDAK BISA RENEW
+        membership_status = player_data.membership_status
+
+        # if membership_status == "EXPIRED":
+        #     return {"invoice_url": "", "external_id": "EXPIRED"}
+
+        try:
+
+            # 🔥 Buat invoice baru ke Xendit
+            payment = create_registration_invoice(
+                email=player_data.user.email,
+                payment_channel_code=req.get("payment_channel"),
+                payment_method=req.get("payment_method"),
+                base_amount=100_000,
+            )
+
+            # Update player invoice data
+            player_data.external_id = payment["external_id"]
+            player_data.amount = payment["amount"]
+            player_data.expiry_date = payment["expiry_date"]
+            player_data.invoice_url = payment["invoice_url"]
+            player_data.payment_status = "PENDING"
+            player_data.payment_channel = payment["payment_channel"]
+            player_data.payment_method = payment["payment_method"]
+
+            player_data.save()
+
+            return {
+                "invoice_url": player_data.invoice_url,
+                "external_id": player_data.external_id,
+            }
+
+        except Exception as e:
+            return {"invoice_url": f"error {e}", "external_id": ""}

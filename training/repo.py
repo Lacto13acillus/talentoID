@@ -223,7 +223,7 @@ class RepoTraining:
     @staticmethod
     def get_by_coach(coach_id):
         teams = team.objects.filter(coach=coach_id)
-        trainings = training.objects.filter(tim__in=teams)
+        trainings = training.objects.filter(tim__in=teams).order_by("-date")
         result = []
 
         for t in trainings:
@@ -296,8 +296,10 @@ class RepoTraining:
         player_result = player.objects.get(player=player_id)
         if player_result.verification_status != "Verified":
             return []
+        # if player_result.membership_status == "EXPIRED":
+        #     return []
         team_player = player_result.tim
-        trainings = training.objects.filter(tim=team_player)
+        trainings = training.objects.filter(tim=team_player).order_by("-date")
         result = []
         for t in trainings:
             schedule_data = None
@@ -365,7 +367,7 @@ class RepoTraining:
 
     @staticmethod
     def get_by_team(team_id):
-        trainings = training.objects.filter(tim=team_id)
+        trainings = training.objects.filter(tim=team_id).order_by("-date")
         print("get_by_team trainings ", trainings.count())
         result = []
         for t in trainings:
@@ -435,7 +437,7 @@ class RepoTraining:
 
     @staticmethod
     def get_all():
-        trainings = training.objects.all()
+        trainings = training.objects.all().order_by("-date")
         result = []
 
         for t in trainings:

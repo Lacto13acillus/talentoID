@@ -22,7 +22,7 @@ class UsecasePlayer:
             "player": uuid.uuid4(),  # Generate UUID untuk player
             "nama": request.data["nama"],
             "posisi": request.data["posisi"],
-            "kewarganegaraan": request.data["kewarganegaraan"],
+            "kode_kabupaten": request.data["kode_kabupaten"],
             "team": request.data["team"],
             "nomor_punggung": request.data["nomor_punggung"],
             "tinggi_badan": request.data["tinggi_badan"],
@@ -36,6 +36,17 @@ class UsecasePlayer:
         }
 
         dataPost = RepoPlayer.post(reqs)
+        return dataPost
+
+    @staticmethod
+    def renew(request):
+
+        reqs = {
+            "player": request.data["player"],
+            "payment_channel": request.data["payment_channel"],
+            "payment_method": request.data["payment_method"],
+        }
+        dataPost = RepoPlayer.renew(reqs)
         return dataPost
 
     @staticmethod
@@ -58,7 +69,8 @@ class UsecasePlayer:
             "player": request.data["player"],
             "nama": request.data.get("nama"),
             "posisi": request.data.get("posisi"),
-            "kewarganegaraan": request.data.get("kewarganegaraan"),
+            # "kewarganegaraan": request.data.get("kewarganegaraan"),
+            "kode_kabupaten": request.data.get("kode_kabupaten"),
             "team": request.data.get("team"),
             "nomor_punggung": request.data.get("nomor_punggung"),
             "tinggi_badan": request.data.get("tinggi_badan"),

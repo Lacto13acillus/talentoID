@@ -68,6 +68,11 @@ from PlayerPerformance.views import player_performance_handler
 from player.views import xendit_handler
 from user.views import delete_account_handler
 from payments.views import get_payment_channels
+from tournament.views.views import tournament_handler
+from tournament.views.tournament_registration_view import (
+    tournament_registration_handler,
+)
+from wilayah.views.wilayah_view import provinsi_handler, kabupaten_handler
 
 urlpatterns = [
     re_path("admin/", admin.site.urls),
@@ -124,6 +129,10 @@ urlpatterns = [
     re_path(r"^api/player-performance$", player_performance_handler),
     re_path(r"^api/xendit-callback$", xendit_handler),
     re_path("api/payment/channels", get_payment_channels, name="get_payment_channels"),
+    re_path(r"^api/tournament$", tournament_handler),
+    re_path(r"^api/tournament-registration$", tournament_registration_handler),
+    re_path("api/provinsi", provinsi_handler),
+    re_path("api/kabupaten", kabupaten_handler),
     # path(
     #     "api/payment/status/<str:external_id>",
     #     check_payment_status,

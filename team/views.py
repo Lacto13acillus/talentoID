@@ -60,6 +60,7 @@ def team_handler(request):
             )
 
         elif request.method == "PUT":
+            print(request.data)
             if "team" not in request.data:
                 return Response(
                     {"code": 400, "message": "team is required"},

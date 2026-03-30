@@ -97,6 +97,8 @@ def pertandingan_handler(request):
             player_id = request.query_params.get("player")
             team_id = request.query_params.get("team")
 
+            status_param = request.query_params.get("status")
+
             if match:
                 data = UsecasePertandingan.get(match)
                 return Response(
@@ -104,7 +106,9 @@ def pertandingan_handler(request):
                     status=status.HTTP_200_OK,
                 )
             elif coach_id:
-                data = UsecasePertandingan.get_pertandingan_by_coach(coach_id)
+                data = UsecasePertandingan.get_pertandingan_by_coach(
+                    coach_id, status_param
+                )
                 return Response(
                     {"code": 200, "message": "sukses", "data": data},
                     status=status.HTTP_200_OK,

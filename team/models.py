@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import FileExtensionValidator
+from wilayah.models import Kabupaten
 
 # import ProfilCoach.models as ProfilCoach
 # import club.models as club
@@ -19,6 +20,15 @@ class team(models.Model):
     #     default=True,  # default-nya adalah None (null))
     # )
     kategori_team = models.CharField(max_length=60)
+
+    kabupaten = models.ForeignKey(
+        Kabupaten,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="teams",
+    )
+
     logo_team = models.ImageField(
         upload_to="team/",  # Direktori penyimpanan gambar
         validators=[

@@ -32,7 +32,7 @@ class RepoProfilCoach:
                 id_user=req["user_id"],
                 nama=req["nama_coach"],
                 email=req["email"],
-                password=make_password(req["password"]),
+                password=req["password"],
                 nomor_telepon=req["nomor_telepon"],
                 foto_profil=foto_profil,
                 role="coach",

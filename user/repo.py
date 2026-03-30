@@ -89,7 +89,7 @@ class RepoUser:
                 "team": (
                     {
                         "team": user_data.team.team,
-                        "club": user_data.team.club.club,
+                        # "club": user_data.team.club.club,
                         "coach": user_data.team.coach.coach,
                         "nama_team": user_data.team.nama_team,
                         "kategori_team": user_data.team.kategori_team,

@@ -4,6 +4,8 @@ from django.core.exceptions import ValidationError
 from ProfilCoach.models import ProfilCoach
 from player.models import player
 
+from wilayah.models import Kabupaten
+
 
 class RepoTeam:
     @staticmethod
@@ -24,11 +26,21 @@ class RepoTeam:
         Coach = get_object_or_404(ProfilCoach, coach=req["coach"])
         # club_instance = get_object_or_404(club, club=req["club"])
 
+        kabupaten_instance = None
+        if req.get("kode_kabupaten"):
+            kabupaten_instance = Kabupaten.objects.filter(
+                kode=req["kode_kabupaten"]
+            ).first()
+
+            if not kabupaten_instance:
+                raise ValidationError("Kode kabupaten tidak valid.")
+
         new_team = team.objects.create(
             team=req["team"],
             nama_team=req["nama_team"],
             coach=Coach,
             # club=club_instance,
+            kabupaten=kabupaten_instance,
             kategori_team=req["kategori_team"],
             logo_team=req.get("logo_team", None),
         )
@@ -42,6 +54,10 @@ class RepoTeam:
             # "club_name": new_team.club.club_name,
             "kategori_team": new_team.kategori_team,
             "logo_team": new_team.logo_team.url if new_team.logo_team else None,
+            "kabupaten": new_team.kabupaten.nama if new_team.kabupaten else None,
+            "provinsi": (
+                new_team.kabupaten.provinsi.nama if new_team.kabupaten else None
+            ),
         }
 
     @staticmethod
@@ -60,11 +76,22 @@ class RepoTeam:
             "kategori_team": team_data.kategori_team,
             "logo_team": team_data.logo_team.url if team_data.logo_team else None,
             "stats": team_stats,  # Add team stats to the response
+            "kabupaten": team_data.kabupaten.nama if team_data.kabupaten else None,
+            "provinsi": (
+                team_data.kabupaten.provinsi.nama if team_data.kabupaten else None
+            ),
         }
 
     @staticmethod
     def get_all():
-        teams = team.objects.all().order_by("-created_at")
+        # teams = team.objects.all().order_by("-created_at")
+        teams = (
+            team.objects.select_related(
+                "kabupaten", "kabupaten__provinsi", "coach__user"
+            )
+            .all()
+            .order_by("-created_at")
+        )
         return [
             {
                 "team": team_data.team,
@@ -78,6 +105,16 @@ class RepoTeam:
                 "stats": RepoTeam.get_team_stats_by_team_id(
                     team_data.team
                 ),  # Add team stats to each team
+                "kabupaten": team_data.kabupaten.kode if team_data.kabupaten else None,
+                "kabupaten_name": (
+                    team_data.kabupaten.nama if team_data.kabupaten else None
+                ),
+                "provinsi": (
+                    team_data.kabupaten.provinsi.kode if team_data.kabupaten else None
+                ),
+                "provinsi_name": (
+                    team_data.kabupaten.provinsi.nama if team_data.kabupaten else None
+                ),
             }
             for team_data in teams
         ]
@@ -98,6 +135,10 @@ class RepoTeam:
                 "stats": RepoTeam.get_team_stats_by_team_id(
                     team_data.team
                 ),  # Add team stats to each team
+                "kabupaten": team_data.kabupaten.nama if team_data.kabupaten else None,
+                "provinsi": (
+                    team_data.kabupaten.provinsi.nama if team_data.kabupaten else None
+                ),
             }
             for team_data in teams
         ]
@@ -117,6 +158,7 @@ class RepoTeam:
 
     @staticmethod
     def put(req):
+        print(req)
         allowed_extensions = ["jpg", "jpeg", "png", "gif"]
 
         team_instance = get_object_or_404(team, team=req["team"])
@@ -125,6 +167,19 @@ class RepoTeam:
         team_instance.kategori_team = req.get(
             "kategori_team", team_instance.kategori_team
         )
+
+        if "kode_kabupaten" in req:
+            if req["kode_kabupaten"]:
+                kabupaten_instance = Kabupaten.objects.filter(
+                    kode=req["kode_kabupaten"]
+                ).first()
+
+                if not kabupaten_instance:
+                    raise ValidationError("Kode kabupaten tidak valid.")
+
+                team_instance.kabupaten = kabupaten_instance
+            else:
+                team_instance.kabupaten = None
 
         if "coach" in req:
             team_instance.coach = get_object_or_404(ProfilCoach, pk=req["coach"])
@@ -157,6 +212,14 @@ class RepoTeam:
             "kategori_team": team_instance.kategori_team,
             "logo_team": (
                 team_instance.logo_team.url if team_instance.logo_team else None
+            ),
+            "kabupaten": (
+                team_instance.kabupaten.nama if team_instance.kabupaten else None
+            ),
+            "provinsi": (
+                team_instance.kabupaten.provinsi.nama
+                if team_instance.kabupaten
+                else None
             ),
             # 'logo_team': req.get('logo_team', team_instance.logo_team.url if team_instance.logo_team else None)
         }

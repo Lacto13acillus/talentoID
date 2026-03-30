@@ -161,7 +161,6 @@ class RepoAttendance:
                         "player": new_attendance.player.player,
                         "nama": new_attendance.player.nama,
                         "posisi": new_attendance.player.posisi,
-                        "kewarganegaraan": new_attendance.player.kewarganegaraan,
                         "team": {
                             "team": (
                                 new_attendance.player.tim.team
@@ -220,7 +219,6 @@ class RepoAttendance:
                 "player": attendance_data.player.player,
                 "nama": attendance_data.player.nama,
                 "posisi": attendance_data.player.posisi,
-                "kewarganegaraan": attendance_data.player.kewarganegaraan,
                 "team": {
                     "team": (
                         attendance_data.player.tim.team
@@ -277,7 +275,6 @@ class RepoAttendance:
                             "player": data.player.player,
                             "nama": data.player.nama,
                             "posisi": data.player.posisi,
-                            "kewarganegaraan": data.player.kewarganegaraan,
                             "team": {
                                 "team": (
                                     data.player.tim.team if data.player.tim else None
@@ -337,7 +334,6 @@ class RepoAttendance:
                             "player": data.player.player,
                             "nama": data.player.nama,
                             "posisi": data.player.posisi,
-                            "kewarganegaraan": data.player.kewarganegaraan,
                             "team": {
                                 "team": (
                                     data.player.tim.team if data.player.tim else None
@@ -408,7 +404,6 @@ class RepoAttendance:
                 "player": AttendanceData.player.player,
                 "nama": AttendanceData.player.nama,
                 "posisi": AttendanceData.player.posisi,
-                "kewarganegaraan": AttendanceData.player.kewarganegaraan,
                 "team": {
                     "team": (
                         AttendanceData.player.tim.team
@@ -501,7 +496,6 @@ class RepoAttendance:
                 "player": player_obj.player,
                 "nama": player_obj.nama,
                 "posisi": player_obj.posisi,
-                "kewarganegaraan": player_obj.kewarganegaraan,
                 "team": {
                     "team": player_obj.tim.team,
                     "nama_team": player_obj.tim.nama_team,

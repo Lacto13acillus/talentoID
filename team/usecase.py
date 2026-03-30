@@ -12,7 +12,7 @@ class UsecaseTeam:
             "team": uuid.uuid4(),
             "nama_team": request.data["nama_team"],
             "coach": request.data["coach"],
-            # 'club': request.data['club'],
+            "kode_kabupaten": request.data["kabupaten"],
             "kategori_team": request.data["kategori_team"],
             "logo_team": request.FILES["logo_team"],
         }
@@ -42,7 +42,8 @@ class UsecaseTeam:
             "team": request.data["team"],
             "nama_team": request.data.get("nama_team"),
             "coach": request.data.get("coach"),
-            "club": request.data["club"],
+            "kode_kabupaten": request.data.get("kode_kabupaten"),
+            # "club": request.data["club"],
             "kategori_team": request.data.get("kategori_team"),
             "logo_team": request.FILES.get("logo_team"),
         }

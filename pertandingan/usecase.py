@@ -34,8 +34,10 @@ class UsecasePertandingan:
         return dataPertandingan
 
     @staticmethod
-    def get_pertandingan_by_coach(coach_id):
-        dataPertandingan = RepoPertandingan.get_pertandingan_by_coach(coach_id)
+    def get_pertandingan_by_coach(coach_id, status_param=None):
+        dataPertandingan = RepoPertandingan.get_pertandingan_by_coach(
+            coach_id, status_param
+        )
         return dataPertandingan
 
     @staticmethod
