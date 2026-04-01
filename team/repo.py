@@ -168,10 +168,10 @@ class RepoTeam:
             "kategori_team", team_instance.kategori_team
         )
 
-        if "kode_kabupaten" in req:
-            if req["kode_kabupaten"]:
+        if "kabupaten" in req:
+            if req["kabupaten"]:
                 kabupaten_instance = Kabupaten.objects.filter(
-                    kode=req["kode_kabupaten"]
+                    kode=req["kabupaten"]
                 ).first()
 
                 if not kabupaten_instance:

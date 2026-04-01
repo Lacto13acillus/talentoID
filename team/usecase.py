@@ -42,7 +42,7 @@ class UsecaseTeam:
             "team": request.data["team"],
             "nama_team": request.data.get("nama_team"),
             "coach": request.data.get("coach"),
-            "kode_kabupaten": request.data.get("kode_kabupaten"),
+            "kabupaten": request.data.get("kabupaten"),
             # "club": request.data["club"],
             "kategori_team": request.data.get("kategori_team"),
             "logo_team": request.FILES.get("logo_team"),

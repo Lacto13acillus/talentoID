@@ -76,6 +76,7 @@ class UsecasePlayer:
             "tinggi_badan": request.data.get("tinggi_badan"),
             "berat_badan": request.data.get("berat_badan"),
             "tanggal_gabung": request.data.get("tanggal_gabung"),
+            "end_date": request.data.get("end_date"),
             "kelamin": request.data.get("kelamin"),
             "dob": request.data["dob"],
             "verification_status": request.data["verification_status"],

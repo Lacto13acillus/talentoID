@@ -121,7 +121,7 @@ class RepoMedicalHistory:
                     "nama": history.pemain.nama,
                     "posisi": history.pemain.posisi,
                     "usia": history.pemain.usia,
-                    "kewarganegaraan": history.pemain.kewarganegaraan,
+                    # "kewarganegaraan": history.pemain.kewarganegaraan,
                     "team": {
                         "team": history.pemain.tim.team if history.pemain.tim else None,
                         "nama_team": (
@@ -172,7 +172,7 @@ class RepoMedicalHistory:
                             "nama": history.pemain.nama,
                             "posisi": history.pemain.posisi,
                             "usia": history.pemain.usia,
-                            "kewarganegaraan": history.pemain.kewarganegaraan,
+                            # "kewarganegaraan": history.pemain.kewarganegaraan,
                             "team": {
                                 "team": (
                                     history.pemain.tim.team
@@ -249,7 +249,7 @@ class RepoMedicalHistory:
                 "nama": Pemain.nama,
                 "posisi": Pemain.posisi,
                 "usia": Pemain.usia,
-                "kewarganegaraan": Pemain.kewarganegaraan,
+                # "kewarganegaraan": Pemain.kewarganegaraan,
                 "team": {
                     "team": Pemain.tim.team if Pemain.tim else None,
                     "nama_team": Pemain.tim.nama_team if Pemain.tim else None,

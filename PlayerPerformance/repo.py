@@ -23,7 +23,7 @@ class RepoPlayerPerformance:
                 lambda: {
                     "player_name": "",
                     "foto_profil": "",
-                    "kewarganegaraan": "",
+                    # "kewarganegaraan": "",
                     "foto_profil": "",
                     "posisi": "",
                     "metrics": [],
@@ -58,9 +58,9 @@ class RepoPlayerPerformance:
                 "foto_profil"
             ] = perf.player.foto_profil.url
             grouped_data[match_id][player_id]["posisi"] = perf.player.posisi
-            grouped_data[match_id][player_id][
-                "kewarganegaraan"
-            ] = perf.player.kewarganegaraan
+            # grouped_data[match_id][player_id][
+            #     "kewarganegaraan"
+            # ] = perf.player.kewarganegaraan
 
             grouped_data[match_id][player_id]["metrics"].append(
                 {
@@ -80,7 +80,7 @@ class RepoPlayerPerformance:
                             "player_id": player_id,
                             "player_name": data["player_name"],
                             "foto_profil": data["foto_profil"],
-                            "kewarganegaraan": data["kewarganegaraan"],
+                            # "kewarganegaraan": data["kewarganegaraan"],
                             "posisi": data["posisi"],
                             "metrics": data["metrics"],
                         }
@@ -122,7 +122,7 @@ class RepoPlayerPerformance:
             lambda: {
                 "player_name": "",
                 "foto_profil": "",
-                "kewarganegaraan": "",
+                # "kewarganegaraan": "",
                 "posisi": "",
                 "metrics": [],
             }
@@ -147,7 +147,7 @@ class RepoPlayerPerformance:
             players_data[player_id]["foto_profil"] = (
                 perf.player.foto_profil.url if perf.player.foto_profil else ""
             )
-            players_data[player_id]["kewarganegaraan"] = perf.player.kewarganegaraan
+            # players_data[player_id]["kewarganegaraan"] = perf.player.kewarganegaraan
             players_data[player_id]["posisi"] = perf.player.posisi
 
             players_data[player_id]["metrics"].append(
@@ -163,7 +163,7 @@ class RepoPlayerPerformance:
                 "player_id": player_id,
                 "player_name": data["player_name"],
                 "foto_profil": data["foto_profil"],
-                "kewarganegaraan": data["kewarganegaraan"],
+                # "kewarganegaraan": data["kewarganegaraan"],
                 "posisi": data["posisi"],
                 "passing_accuracy": RepoPlayerPerformance.calculate_accuracy(
                     data["metrics"], "Pass Success", "Pass Attempted"
@@ -645,7 +645,7 @@ class RepoPlayerPerformance:
                         {
                             "player_name": player["player_name"],
                             "foto_profil": player["foto_profil"],
-                            "kewarganegaraan": player["kewarganegaraan"],
+                            # "kewarganegaraan": player["kewarganegaraan"],
                             "value": metric["value"],
                         }
                     )

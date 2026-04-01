@@ -325,6 +325,7 @@ class RepoPlayer:
 
     @staticmethod
     def put(req):
+        print("req", req)
         allowed_extensions = ["jpg", "jpeg", "png", "gif"]
 
         PlayerData = get_object_or_404(player, player=req["player"])
@@ -342,6 +343,7 @@ class RepoPlayer:
         PlayerData.tinggi_badan = req.get("tinggi_badan", PlayerData.tinggi_badan)
         PlayerData.berat_badan = req.get("berat_badan", PlayerData.berat_badan)
         PlayerData.tanggal_gabung = req.get("tanggal_gabung", PlayerData.tanggal_gabung)
+        PlayerData.end_date = req.get("end_date", PlayerData.end_date)
         PlayerData.kelamin = req.get("kelamin", PlayerData.kelamin)
         PlayerData.dob = req.get("dob", PlayerData.dob)
         PlayerData.verification_status = req.get(
