@@ -104,43 +104,44 @@ class player(models.Model):
 
     # 🔥 SAVE LOGIC (SIMPLER VERSION)
     def save(self, *args, **kwargs):
-        """Handle membership expiry for both new registration and renewal"""
+        current_time = now()
 
-        # Check if this is an update to existing record
-        if self.pk:  # Existing record
+        is_paid = self.payment_status in ["PAID", "SUCCEEDED", "SETTLED"]
+
+        # =========================
+        # CASE 1: NEW OBJECT
+        # =========================
+        if not self.pk:
+            if is_paid and self.paid_at:
+                self.end_date = self.paid_at + relativedelta(months=1)
+
+        # =========================
+        # CASE 2: UPDATE OBJECT
+        # =========================
+        else:
             try:
-                # Try to get the old instance
                 old_instance = player.objects.get(pk=self.pk)
 
-                # Payment just confirmed (from non-PAID to PAID/SUCCEEDED/SETTLED)
                 old_payment_status = old_instance.payment_status
                 old_payment_not_paid = old_payment_status not in [
                     "PAID",
                     "SUCCEEDED",
                     "SETTLED",
                 ]
-                new_payment_is_paid = self.payment_status in [
-                    "PAID",
-                    "SUCCEEDED",
-                    "SETTLED",
-                ]
+
+                new_payment_is_paid = is_paid
 
                 if old_payment_not_paid and new_payment_is_paid and self.paid_at:
 
-                    current_time = now()
-
-                    # If no end_date exists OR end_date is in the past → New registration
+                    # expired / new
                     if not self.end_date or self.end_date <= current_time:
-                        # New registration or expired renewal
                         self.end_date = self.paid_at + relativedelta(months=1)
 
-                    # If end_date exists and is in the future → Renewal of active member
-                    elif self.end_date and self.end_date > current_time:
-                        # Extend existing membership
+                    # renewal
+                    elif self.end_date > current_time:
                         self.end_date = self.end_date + relativedelta(months=1)
 
             except player.DoesNotExist:
-                # This shouldn't happen since self.pk exists, but just in case
                 pass
 
         super().save(*args, **kwargs)

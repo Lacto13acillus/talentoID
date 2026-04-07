@@ -11,6 +11,8 @@ from django.contrib.auth.hashers import make_password
 import xendit
 from player.services.payment_service import create_registration_invoice
 from wilayah.models import Kabupaten
+from django.utils.timezone import now
+from dateutil.relativedelta import relativedelta
 
 # See configuration.py for a list of all supported configuration parameters.
 xendit.set_api_key(
@@ -21,37 +23,27 @@ xendit.set_api_key(
 class RepoPlayer:
     @staticmethod
     def post(req):
-
-        print("req", req)
-
         # generate unique external_id
         email = req["email"]
-        # external_id = f"register_{uuid.uuid4().hex[:6]}_{email}"
-
-        # Enter a context with an instance of the API client
-        # api_client = xendit.ApiClient()
-
-        # Create an instance of the API class
-        # api_instance = InvoiceApi(api_client)
-
-        # amount = float(100000)
-        # create_invoice_request = CreateInvoiceRequest(
-        #     external_id=external_id,
-        #     payer_email=email,
-        #     description="Pendaftaran Pemain",
-        #     amount=amount,
-        # )
+        is_free = True
 
         try:
 
-            payment = create_registration_invoice(
-                email=email,
-                payment_channel_code=req["payment_channel"],
-                payment_method=req["payment_method"],
-                base_amount=100_000,
-            )
-            # Panggil API Xendit untuk membuat invoice
-            # api_response = api_instance.create_invoice(create_invoice_request)
+            if is_free:
+                payment = {
+                    "external_id": f"free_{uuid.uuid4().hex[:8]}",
+                    "amount": 0,
+                    "expiry_date": None,
+                    "invoice_url": None,
+                }
+            else:
+                payment = create_registration_invoice(
+                    email=email,
+                    payment_channel_code=req["payment_channel"],
+                    payment_method=req["payment_method"],
+                    base_amount=100_000,
+                )
+
             print("payment_response", payment)
 
             allowed_extensions = ["jpg", "jpeg", "png", "gif"]
@@ -119,6 +111,10 @@ class RepoPlayer:
                 amount=payment["amount"],
                 expiry_date=payment["expiry_date"],
                 invoice_url=payment["invoice_url"],
+                payment_status="PAID" if is_free else "PENDING",
+                paid_at=now() if is_free else None,
+                # 🔥 INI KUNCINYA
+                end_date=(now() + relativedelta(months=1)) if is_free else None,
             )
             return {
                 "user": {
@@ -343,7 +339,14 @@ class RepoPlayer:
         PlayerData.tinggi_badan = req.get("tinggi_badan", PlayerData.tinggi_badan)
         PlayerData.berat_badan = req.get("berat_badan", PlayerData.berat_badan)
         PlayerData.tanggal_gabung = req.get("tanggal_gabung", PlayerData.tanggal_gabung)
-        PlayerData.end_date = req.get("end_date", PlayerData.end_date)
+
+        end_date = req.get("end_date")
+
+        if end_date in ["", None]:
+            PlayerData.end_date = None
+        else:
+            PlayerData.end_date = end_date
+
         PlayerData.kelamin = req.get("kelamin", PlayerData.kelamin)
         PlayerData.dob = req.get("dob", PlayerData.dob)
         PlayerData.verification_status = req.get(
