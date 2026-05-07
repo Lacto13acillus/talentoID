@@ -1,9 +1,13 @@
+from decimal import Decimal
+
+
 from .models import PlayerPerformance
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from Metric.models import Metric
 from player.models import player
 from team.models import team
+from ProfilCoach.models import ProfilCoach
 from pertandingan.models import pertandingan
 from training.models import training
 from collections import defaultdict
@@ -651,3 +655,88 @@ class RepoPlayerPerformance:
                     )
 
         return grouped
+
+    @staticmethod
+    def get_raw_average(coach_id=None):
+
+        qs = PlayerPerformance.objects
+
+        if coach_id:
+            # 🔹 1. cek apakah ini coach
+            coach_exists = ProfilCoach.objects.filter(coach=coach_id).exists()
+
+            if coach_exists:
+                # 🔹 2. ambil berdasarkan team milik coach
+                qs = qs.filter(player__tim__coach=coach_id)
+
+            else:
+                # 🔹 3. fallback → anggap ini player_id
+                player_obj = (
+                    player.objects.select_related("tim").filter(player=coach_id).first()
+                )
+
+                if player_obj and player_obj.tim:
+                    # 🔹 4. filter berdasarkan team player tersebut
+                    qs = qs.filter(player__tim=player_obj.tim)
+                else:
+                    return qs.none()
+
+        return (
+            qs.exclude(metric__metric_category__metric_category="Performance")
+            .values(
+                "player__player",
+                "player__nama",
+                "player__posisi",
+                "player__tim__nama_team",
+                "metric__metric",
+                "metric__name",
+            )
+            .annotate(avg_value=Avg("value"))
+            .order_by("player__player", "metric__metric")
+        )
+
+    @staticmethod
+    def get_average_per_player_per_metric(limit=None, coach_id=None):
+        rows = RepoPlayerPerformance.get_raw_average(coach_id=coach_id)
+
+        player_map = defaultdict(
+            lambda: {"metrics": [], "total": Decimal(0), "count": 0}
+        )
+
+        for row in rows:
+            pid = str(row["player__player"])
+            player_map[pid]["player_id"] = pid
+            player_map[pid]["player_name"] = row["player__nama"]
+            player_map[pid]["position"] = row["player__posisi"]  # ← tambah
+            player_map[pid]["team_name"] = row["player__tim__nama_team"]  # ← tambah
+            player_map[pid]["metrics"].append(
+                {
+                    "metric_id": str(row["metric__metric"]),
+                    "metric_name": row["metric__name"],
+                    "average_value": float(row["avg_value"]),
+                }
+            )
+            player_map[pid]["total"] += row["avg_value"]
+            player_map[pid]["count"] += 1
+
+        standings = []
+        for pid, data in player_map.items():
+            data["overall_average"] = float(
+                round(data["total"] / data["count"], 2) if data["count"] else 0
+            )
+            data.pop("total")
+            data.pop("count")
+            standings.append(data)
+
+        standings.sort(key=lambda x: x["overall_average"], reverse=True)
+
+        for i, player in enumerate(standings, start=1):
+            player["rank"] = i
+
+        if limit:
+            try:
+                standings = standings[: int(limit)]
+            except (ValueError, TypeError):
+                pass
+
+        return standings

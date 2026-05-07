@@ -10,6 +10,7 @@ from datetime import datetime
 import re
 from django.utils.dateparse import parse_date
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 class RepoTraining:
@@ -222,11 +223,29 @@ class RepoTraining:
 
     @staticmethod
     def get_by_coach(coach_id):
+
+        today = timezone.now().date()
+
         teams = team.objects.filter(coach=coach_id)
         trainings = training.objects.filter(tim__in=teams).order_by("-date")
+
+        # 7 event sebelum hari ini (termasuk hari ini ke bawah, diurutkan descending lalu dibalik)
+        past_events = trainings.filter(date__lt=today).order_by("-date")[:7]
+        past_events = sorted(
+            past_events, key=lambda x: x.date
+        )  # balik urutan jadi ascending
+
+        # event hari ini
+        today_events = list(trainings.filter(date=today).order_by("start_time"))
+
+        # 7 event setelah hari ini
+        future_events = list(trainings.filter(date__gt=today).order_by("date")[:7])
+
+        training_list = list(past_events) + today_events + future_events
+
         result = []
 
-        for t in trainings:
+        for t in training_list:
             schedule_data = None
             if t.jadwal:
                 schedule_data = {

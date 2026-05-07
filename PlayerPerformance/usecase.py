@@ -70,3 +70,11 @@ class UsecasePlayerPerformance:
     @staticmethod
     def delete(request):
         return RepoPlayerPerformance.delete(request.data["player_performance"])
+
+    @staticmethod
+    def get_standings(request):
+        limit = request.query_params.get("limit")
+        coach_id = request.query_params.get("coach_id")
+        return RepoPlayerPerformance.get_average_per_player_per_metric(
+            limit=limit, coach_id=coach_id
+        )

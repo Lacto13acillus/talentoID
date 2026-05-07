@@ -168,3 +168,18 @@ def player_performance_handler(request):
             {"code": 500, "message": message},
             status=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
+
+
+@api_view(["GET"])
+def player_standing_handler(request):
+    if request.method == "GET":
+        limit = request.query_params.get("limit")
+
+        return Response(
+            {
+                "code": 200,
+                "message": "success",
+                "data": UsecasePlayerPerformance.get_standings(request),
+            },
+            status=http_status.HTTP_200_OK,
+        )

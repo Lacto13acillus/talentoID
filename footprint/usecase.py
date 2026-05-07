@@ -1,6 +1,5 @@
 from .repo import RepoFootprint
-import uuid
-from django.core.exceptions import ValidationError
+
 
 class UsecaseFootprint:
     @staticmethod
@@ -18,15 +17,14 @@ class UsecaseFootprint:
     @staticmethod
     def put(request):
         reqs = {
-            'footprint': request.data['footprint'],
-            'training': request.data['training'],
-            'media': request.FILES.get('media')  # Media is optional for PUT
+            "footprint": request.data["footprint"],
+            "training": request.data["training"],
+            "category": request.data["category"],
+            "media": request.FILES.get("media"),  # Media is optional for PUT
         }
         return RepoFootprint.put(reqs)
 
     @staticmethod
     def delete(request):
-        reqs = {
-            'footprint': request.data['footprint']
-        }
+        reqs = {"footprint": request.data["footprint"]}
         return RepoFootprint.delete(reqs)

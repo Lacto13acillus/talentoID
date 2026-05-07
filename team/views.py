@@ -15,6 +15,7 @@ from django.core.exceptions import ValidationError
 @authentication_classes([])  # Tambahkan autentikasi JWT
 @permission_classes([])  # Hanya user yang terautentikasi yang bisa mengakses
 def team_handler(request):
+    print("Request method:", request.method)
     try:
         if request.method == "POST":
             print(request.data)

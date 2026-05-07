@@ -439,9 +439,10 @@ class RepoPertandingan:
     @staticmethod
     def get_pertandingan_by_coach(coach_id, status_param=None):
 
+        today = timezone.now().date()
         teams_dilatih = team.objects.filter(coach=coach_id)
 
-        pertandingan_list = pertandingan.objects.select_related(
+        base_qs = pertandingan.objects.select_related(
             "tim_home",
             "tim_away",
             "lokasi",
@@ -451,14 +452,35 @@ class RepoPertandingan:
             "jadwal",
         ).filter(Q(tim_home__in=teams_dilatih) | Q(tim_away__in=teams_dilatih))
 
+        # 7 event sebelum hari ini (termasuk hari ini ke bawah, diurutkan descending lalu dibalik)
+        past_events = base_qs.filter(date__lt=today).order_by("-date")[:7]
+        past_events = sorted(
+            past_events, key=lambda x: x.date
+        )  # balik urutan jadi ascending
+
+        # event hari ini
+        today_events = list(base_qs.filter(date=today).order_by("start_time"))
+
+        # 7 event setelah hari ini
+        future_events = list(base_qs.filter(date__gt=today).order_by("date")[:7])
+
+        pertandingan_list = list(past_events) + today_events + future_events
+
+        print("today:", today)
+        print("all dates:", list(base_qs.values_list("date", flat=True)))
+        print("past count:", base_qs.filter(date__lt=today).count())
+        print("today count:", base_qs.filter(date=today).count())
+        print("future count:", base_qs.filter(date__gt=today).count())
+
         # =========================
         # FILTER STATUS (OPTIONAL)
         # =========================
         if status_param == "upcoming":
-            today = timezone.now().date()
-            pertandingan_list = pertandingan_list.filter(
-                status__match_status="Preparing", date__gte=today
-            )
+            pertandingan_list = [
+                p
+                for p in pertandingan_list
+                if p.status.match_status == "Preparing" and p.date >= today
+            ]
 
         result = []
 
