@@ -110,6 +110,16 @@ ROOT_URLCONF = "api.urls"
 
 TEMPLATES = [
     {
+        # Jinja2 backend: dipakai untuk template hasil port dari Flask
+        # (dicari di folder <app>/jinja2/, mis. integration/jinja2/integrations.html)
+        "BACKEND": "django.template.backends.jinja2.Jinja2",
+        "DIRS": [],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "environment": "api.jinja2_env.environment",
+        },
+    },
+    {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [],
         "APP_DIRS": True,

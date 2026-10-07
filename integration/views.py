@@ -10,7 +10,7 @@ from integration.services import strava_service, terra_service, whoop_service, p
 # DASHBOARD VIEWS
 # =======================
 def integrations_page(request):
-    athletes_qs = player.objects.prefetch_related('integration').all()
+    athletes_qs = player.objects.prefetch_related('integration').only('player', 'nama')
     athletes = []
     for a in athletes_qs:
         integration = getattr(a, 'integration', None)
@@ -23,21 +23,29 @@ def integrations_page(request):
             'huawei_access_token': integration.huawei_access_token if integration else None,
         })
         
-    activities_qs = ActivityLog.objects.select_related('player').all().order_by('-start_time')
+    activities_qs = ActivityLog.objects.select_related('player').only(
+        'id', 'source', 'name', 'sport_type', 'start_time', 'duration', 'distance',
+        'calories', 'avg_hr', 'max_hr', 'raw_payload', 'player__player', 'player__nama'
+    ).order_by('-start_time')
     activities = []
     for act in activities_qs:
+        # Template (Jinja2, port dari Flask) mengakses: act.athlete.name,
+        # act.raw_payload.get(...), act.start_time.strftime(...), act.raw_payload_json
         activities.append({
             'id': act.id,
+            'name': act.name,
+            'athlete': {'id': act.player.player, 'name': act.player.nama},
             'athlete_name': act.player.nama,
             'athlete_id': act.player.player,
-            'source': act.source,
+            'source': act.source or '',
             'sport_type': act.sport_type,
-            'start_time': act.start_time.isoformat() if act.start_time else '',
+            'start_time': act.start_time,
             'duration': act.duration,
             'distance': act.distance,
             'calories': act.calories,
             'avg_hr': act.avg_hr,
             'max_hr': act.max_hr,
+            'raw_payload': act.raw_payload or {},
             'raw_payload_json': json.dumps(act.raw_payload) if act.raw_payload else '{}'
         })
         
