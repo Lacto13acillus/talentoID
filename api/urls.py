@@ -1,9 +1,10 @@
 from django.contrib import admin
-from django.urls import re_path
+from django.urls import re_path, include
 from django.conf.urls.static import static
 from django.conf import settings
 
 # === IMPORT VIEWS ===
+from dashboard.views import activity_list_handler
 from schedule.views import schedule_handler
 from stadion.views import stadion_handler
 from team.views import team_handler, total_team_handler
@@ -137,6 +138,10 @@ urlpatterns = [
     re_path(rf"^{API}/tournaments$", tournament_handler),
     re_path(rf"^{API}/venues$", stadion_handler),
     re_path(rf"^{API}/standings$", player_standing_handler),
+    # dashboard
+    re_path(rf"^{API}/dashboard/activities$", activity_list_handler),
+    # integrations
+    re_path(rf"^{API}/integration/", include("integration.urls")),
 ]
 
 if settings.DEBUG:

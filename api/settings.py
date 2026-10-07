@@ -90,6 +90,8 @@ INSTALLED_APPS = [
     "payments",
     "tournament",
     "wilayah",
+    "dashboard",
+    "integration",
 ]
 
 MIDDLEWARE = [
@@ -131,10 +133,10 @@ WSGI_APPLICATION = "api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "championdb",
-        "USER": "userundie",
-        "PASSWORD": "1sampai8X",
-        "HOST": "127.0.0.1",
+        "NAME": "Football_analysis",
+        "USER": "postgres",
+        "PASSWORD": "Lacto13acillus",
+        "HOST": "100.111.171.125",
         "PORT": "5432",
     }
 }
