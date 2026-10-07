@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>talentoID : Wearable Telemetry & Radar Kondisi Fisik</title>
+    <meta name="description"
+        content="Integrasi perangkat wearable atletik dan visualisasi radar kondisi fisik atlet sepak bola di platform talentoID.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #0b0f14;
+            --bg-panel: #111722;
+            --bg-surface: #16202c;
+            --bg-surface-hover: #1e2b3b;
+            --border-subtle: rgba(255, 255, 255, 0.07);
+            --border-focus: rgba(16, 185, 129, 0.4);
+            --primary: #10b981;
+            --primary-hover: #059669;
+            --primary-dim: rgba(16, 185, 129, 0.12);
+            --purple: #8b5cf6;
+            --purple-dim: rgba(139, 92, 246, 0.12);
+            --danger: #ef4444;
+            --danger-dim: rgba(239, 68, 68, 0.12);
+            --warning: #f59e0b;
+            --warning-dim: rgba(245, 158, 11, 0.12);
+            --info: #38bdf8;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --shadow-panel: 0 16px 36px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        *:focus-visible {
+            outline: 2px solid var(--primary);
+            outline-offset: 3px;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            background-color: var(--bg-base);
+        }
+
+        body {
+            font-family: var(--font-display);
+            background: var(--bg-base);
+            color: var(--text-main);
+            line-height: 1.55;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Micro-noise texture for digital depth */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.025;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* ── Tactical Navigation Bar ── */
+        header {
+            background: rgba(11, 15, 20, 0.85);
+            padding: 0.9rem 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .brand-link {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-badge {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #10b981, #047857);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+            color: #fff;
+            font-size: 1.15rem;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .brand-title {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .brand-title .accent-id {
+            color: var(--primary);
+            font-weight: 800;
+        }
+
+        .brand-sub {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.3rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.45rem 0.9rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.82rem;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .nav-link:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background: var(--primary-dim);
+        }
+
+        .system-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.85rem;
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .status-pulse {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--primary);
+            box-shadow: 0 0 8px var(--primary);
+            animation: pulseDot 2s infinite ease-in-out;
+        }
+
+        @keyframes pulseDot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.85);
+            }
+        }
+
+        /* ── Main Layout Canvas ── */
+        main {
+            flex: 1;
+            width: 100%;
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* ── Page Hero ── */
+        .page-hero {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .hero-title-group h2 {
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -0.025em;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .hero-title-group h2 i {
+            color: var(--primary);
+        }
+
+        .hero-title-group p {
+            font-size: 0.88rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* ── View Tab Segmented Controller ── */
+        .view-switcher {
+            display: flex;
+            background: var(--bg-surface);
+            padding: 0.35rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-subtle);
+            gap: 0.35rem;
+        }
+
+        .view-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.6rem 1.15rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .view-tab-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .view-tab-btn.active {
+            background: var(--primary-dim);
+            color: var(--primary);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+        }
+
+        /* ── Tactical Card Container ── */
+        .tactical-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-panel);
+            position: relative;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-header h2 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            color: var(--text-main);
+        }
+
+        .card-header h2 i {
+            color: var(--primary);
+        }
+
+        /* ── Connected Athlete Rows ── */
+        .athlete-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            transition: transform 0.2s;
+        }
+
+        .athlete-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .athlete-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .athlete-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .athlete-integrations-status {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            flex-wrap: wrap;
+        }
+
+        .integration-active-tag {
+            color: var(--primary);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-weight: 600;
+        }
+
+        .athlete-sync-buttons {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .sync-btn {
+            padding: 0.55rem 0.95rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .sync-btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            filter: brightness(1.1);
+        }
+
+        .sync-btn:active:not(:disabled) {
+            transform: translateY(1px);
+        }
+
+        .sync-btn.strava {
+            background: rgba(252, 76, 2, 0.15);
+            color: #fc4c02;
+            border-color: rgba(252, 76, 2, 0.3);
+        }
+
+        .sync-btn.polar {
+            background: rgba(220, 38, 38, 0.15);
+            color: #ef4444;
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+
+        .sync-btn.whoop {
+            background: rgba(255, 255, 255, 0.08);
+            color: #f8fafc;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .sync-btn.huawei {
+            background: rgba(206, 14, 45, 0.15);
+            color: #f43f5e;
+            border-color: rgba(206, 14, 45, 0.3);
+        }
+
+        /* ── Activity Table ── */
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            background: var(--bg-panel);
+            margin-top: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.84rem;
+            text-align: left;
+        }
+
+        thead th {
+            background: var(--bg-surface);
+            padding: 0.85rem 1rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-subtle);
+            white-space: nowrap;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            transition: background 0.18s;
+        }
+
+        tbody tr:hover {
+            background: rgba(255, 255, 255, 0.025);
+        }
+
+        tbody td {
+            padding: 0.85rem 1rem;
+            vertical-align: middle;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .source-icon {
+            font-size: 1.1rem;
+        }
+
+        .strava-icon {
+            color: #fc4c02;
+        }
+
+        .polar-icon {
+            color: #ef4444;
+        }
+
+        .whoop-icon {
+            color: #f8fafc;
+        }
+
+        .huawei-icon {
+            color: #f43f5e;
+        }
+
+        .btn-view-analysis {
+            background: var(--purple-dim);
+            color: #c4b5fd;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 0.45rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-view-analysis:hover {
+            background: rgba(139, 92, 246, 0.22);
+            transform: translateY(-1px);
+        }
+
+        .btn-raw-json {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            padding: 0.4rem 0.65rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-raw-json:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ── Radar Visualizer Cards ── */
+        .radar-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .radar-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .radar-card-header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .radar-athlete-name {
+            font-size: 1.2rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            color: var(--text-main);
+        }
+
+        .radar-athlete-name i {
+            color: var(--primary);
+        }
+
+        .radar-activity-date {
+            font-size: 0.78rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .radar-canvas-container {
+            width: 320px;
+            height: 320px;
+            margin-bottom: 1.5rem;
+        }
+
+        .radar-stats-grid {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .stat-pill {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            padding: 1rem 1.2rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+            flex: 1 1 130px;
+            /* Allow growing, base width 130px */
+            max-width: 180px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-pill-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-pill-val {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            font-variant-numeric: tabular-nums;
+            margin-top: 0.4rem;
+        }
+
+        .stat-pill-val span {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 600;
+            margin-left: 2px;
+        }
+
+        .stat-pill-formula {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: var(--font-mono);
+            margin-top: 0.6rem;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        /* Benchmark Formula Cards Section */
+        .formula-reference-panel {
+            background: rgba(16, 185, 129, 0.04);
+            border: 1px dashed rgba(16, 185, 129, 0.25);
+            border-radius: var(--radius-md);
+            padding: 1.25rem 1.5rem;
+            margin-top: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.25rem;
+            font-size: 0.8rem;
+        }
+
+        .formula-reference-item strong {
+            color: var(--primary);
+            display: block;
+            margin-bottom: 0.2rem;
+        }
+
+        .formula-reference-item span {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+        }
+
+        /* ── Time Report Progression Section ── */
+        .time-report-container {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.75rem;
+            margin-top: 1rem;
+        }
+
+        .selector-label {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-right: 0.5rem;
+        }
+
+        .tactical-select {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 0.55rem 0.95rem;
+            border-radius: var(--radius-sm);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .tactical-select:focus {
+            border-color: var(--primary);
+        }
+
+        /* ── Modals ── */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+
+        .modal-content {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            margin: 0 auto;
+            max-width: 720px;
+            padding: 2rem;
+            color: var(--text-main);
+            box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            width: 34px;
+            height: 34px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-modal:hover {
+            color: var(--danger);
+            border-color: var(--danger);
+            background: var(--danger-dim);
+        }
+
+        .conclusion-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-main);
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .metric-section {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 1.15rem;
+            margin-bottom: 1rem;
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-name {
+            font-size: 0.88rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .metric-name i {
+            color: var(--primary);
+        }
+
+        .metric-status {
+            padding: 0.2rem 0.65rem;
+            border-radius: 99px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-excellent {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-good {
+            background: rgba(56, 189, 248, 0.15);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .badge-fair {
+            background: rgba(245, 158, 11, 0.15);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-low {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .metric-value {
+            font-size: 0.95rem;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .metric-body {
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .formula-box {
+            background: rgba(16, 185, 129, 0.05);
+            border-left: 3px solid var(--primary);
+            border-radius: 4px;
+            padding: 0.65rem 0.85rem;
+            margin-top: 0.65rem;
+            font-family: var(--font-mono);
+            font-size: 0.74rem;
+            color: var(--primary);
+        }
+
+        .formula-box .formula-label {
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+            color: var(--text-main);
+        }
+
+        .json-viewer {
+            background: var(--bg-surface);
+            padding: 1.25rem;
+            border-radius: var(--radius-md);
+            max-height: 60vh;
+            overflow-y: auto;
+            font-size: 0.82rem;
+            font-family: var(--font-mono);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table td {
+            padding: 0.45rem 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .dt-key {
+            font-weight: 600;
+            color: var(--text-muted);
+            width: 35%;
+        }
+
+        .dt-val {
+            color: var(--text-main);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 1.75rem 2rem;
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-base);
+        }
+
+        @media (max-width: 900px) {
+            .radar-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .radar-stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <a href="/" class="brand-link">
+            <div class="brand-badge"><i class="fas fa-futbol"></i></div>
+            <div class="brand-text">
+                <div class="brand-title">talento<span class="accent-id">ID</span></div>
+                <div class="brand-sub">Sports Performance Intelligence</div>
+            </div>
+        </a>
+        <div class="header-right">
+            <nav class="nav-links">
+                <a href="/" class="nav-link"><i class="fas fa-chart-line"></i> Analysis</a>
+                <a href="/history" class="nav-link"><i class="fas fa-clock-rotate-left"></i> History</a>
+                <a href="/integrations" class="nav-link active"><i class="fas fa-satellite-dish"></i> Wearables &
+                    Radar</a>
+            </nav>
+            <div class="system-status">
+                <div class="status-pulse"></div>
+                <span>Sensors Stream Ready</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="page-hero">
+            <div class="hero-title-group">
+                <h2><i class="fas fa-satellite-dish"></i> Wearable Telemetry & Radar Fisik</h2>
+                <p>Integrasi sensor atletik GPS, heart rate monitor, dan analisis radar 5 dimensi atribut performa.</p>
+            </div>
+            <div class="view-switcher">
+                <button class="view-tab-btn active" id="tab-btn-dashboard" onclick="switchTab('dashboard', this)">
+                    <i class="fas fa-microchip"></i> Sensor Feed
+                </button>
+                <button class="view-tab-btn" id="tab-btn-analytics" onclick="switchTab('analytics', this)">
+                    <i class="fas fa-spider"></i> Physical Radar
+                </button>
+                <button class="view-tab-btn" id="tab-btn-time-report" onclick="switchTab('time-report', this)">
+                    <i class="fas fa-chart-column"></i> Time Progression
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW 1: Dashboard View (Connected Athletes & Activity Logs) -->
+        <div id="dashboard-view">
+            <!-- Connected Athletes Section -->
+            <section class="tactical-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-users"></i> Profil Atlet & Status Sensor</h2>
+                </div>
+
+                {% if athletes %}
+                {% for athlete in athletes %}
+                <div class="athlete-card">
+                    <div class="athlete-meta"
+                        style="display:flex; flex-direction:column; align-items:center; text-align:center; position: relative;">
+                        <!-- Glow Background -->
+                        <div
+                            style="position: absolute; top: 0px; width: 140px; height: 140px; background: radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, rgba(16, 185, 129, 0) 70%); border-radius: 50%; z-index: 1;">
+                        </div>
+
+                        <img src="{{ url_for('static', filename='images/athlete_avatar_trans.png') }}"
+                            alt="Athlete Avatar"
+                            style="width: 150px; height: auto; object-fit: contain; filter: drop-shadow(0 15px 15px rgba(0,0,0,0.6)); position: relative; z-index: 2; margin-top: -25px; margin-bottom: -5px; -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%); mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 80%, rgba(0,0,0,0) 100%);">
+
+                        <div style="z-index: 2;">
+                            <div class="athlete-name"
+                                style="margin-bottom: 0.5rem; display:flex; justify-content:center; gap:0.5rem; font-size:1.6rem; font-weight: 800; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">
+                                <span>{{ athlete.name }}</span>
+                            </div>
+                            <div class="athlete-integrations-status" style="display:flex; gap:0.8rem; flex-wrap:wrap;">
+                                {% if athlete.strava_access_token %}
+                                <span class="integration-active-tag"><i class="fas fa-circle-check"></i> Strava
+                                    Terhubung</span>
+                                {% endif %}
+                                {% if athlete.polar_access_token %}
+                                <span class="integration-active-tag"><i class="fas fa-circle-check"></i> Polar
+                                    Terhubung</span>
+                                {% endif %}
+                                {% if athlete.whoop_access_token %}
+                                <span class="integration-active-tag"><i class="fas fa-circle-check"></i> WHOOP
+                                    Terhubung</span>
+                                {% endif %}
+                                {% if athlete.huawei_access_token %}
+                                <span class="integration-active-tag"><i class="fas fa-circle-check"></i> Huawei
+                                    Terhubung</span>
+                                {% endif %}
+                                {% if not athlete.strava_access_token and not athlete.polar_access_token and not
+                                athlete.whoop_access_token and not athlete.huawei_access_token %}
+                                <span>Belum ada integrasi sensor aktif</span>
+                                {% endif %}
+                            </div>
+                        </div> <!-- Tutup text wrapper -->
+                    </div>
+
+                    <div class="athlete-sync-buttons">
+                        <!-- Strava -->
+                        {% if not athlete.strava_access_token %}
+                        <a href="/app/v2/integration/strava/auth/{{ athlete.id }}" class="sync-btn strava">
+                            <i class="fab fa-strava"></i> Hubungkan Strava
+                        </a>
+                        {% else %}
+                        <button onclick="syncStrava('{{ athlete.id }}')" class="sync-btn strava"
+                            id="sync-strava-{{ athlete.id }}">
+                            <i class="fas fa-rotate"></i> Sync Strava
+                        </button>
+                        {% endif %}
+
+                        <!-- Polar -->
+                        {% if not athlete.polar_access_token %}
+                        <a href="/app/v2/integration/polar/auth/{{ athlete.id }}" class="sync-btn polar">
+                            <i class="fas fa-heartbeat"></i> Hubungkan Polar
+                        </a>
+                        {% else %}
+                        <button onclick="syncPolar('{{ athlete.id }}')" class="sync-btn polar"
+                            id="sync-polar-{{ athlete.id }}">
+                            <i class="fas fa-rotate"></i> Sync Polar
+                        </button>
+                        {% endif %}
+
+                        <!-- WHOOP -->
+                        {% if not athlete.whoop_access_token %}
+                        <a href="/app/v2/integration/whoop/auth/{{ athlete.id }}" class="sync-btn whoop">
+                            <i class="fas fa-ring"></i> Hubungkan WHOOP
+                        </a>
+                        {% else %}
+                        <button onclick="syncWhoop('{{ athlete.id }}')" class="sync-btn whoop"
+                            id="sync-whoop-{{ athlete.id }}">
+                            <i class="fas fa-rotate"></i> Sync WHOOP
+                        </button>
+                        {% endif %}
+
+                        <!-- Huawei -->
+                        {% if not athlete.huawei_access_token %}
+                        <a href="/app/v2/integration/huawei/auth/{{ athlete.id }}" class="sync-btn huawei">
+                            <i class="fas fa-heartbeat"></i> Hubungkan Huawei
+                        </a>
+                        {% else %}
+                        <button onclick="syncHuawei('{{ athlete.id }}')" class="sync-btn huawei"
+                            id="sync-huawei-{{ athlete.id }}">
+                            <i class="fas fa-rotate"></i> Sync Huawei
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+            </section>
+
+            <!-- Activity Logs Section -->
+            {% if activities %}
+            <section class="tactical-card" style="margin-top:2rem">
+                <div class="card-header">
+                    <h2><i class="fas fa-wave-square"></i> Activity Feed & Telemetri Fisik</h2>
+                </div>
+
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sumber</th>
+                                <th>Atlet</th>
+                                <th>Aktivitas</th>
+                                <th>Waktu</th>
+                                <th>Durasi</th>
+                                <th>Jarak (km)</th>
+                                <th>Kec Rata (km/h)</th>
+                                <th>Top Speed (km/h)</th>
+                                <th>Kalori</th>
+                                <th>Avg HR (bpm)</th>
+                                <th>Max HR (bpm)</th>
+                                <th>Suffer Score</th>
+                                <th>Work Rate</th>
+                                <th>Konklusi Fisik</th>
+                                <th>Raw JSON</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for act in activities %}
+                            {% set dist_km = (act.distance or 0) / 1000 %}
+                            {% set avg_spd_kmh = (act.raw_payload.get('average_speed', 0) or 0) * 3.6 %}
+                            {% set top_spd_kmh = (act.raw_payload.get('max_speed', 0) or 0) * 3.6 %}
+                            {% set moving_t = act.raw_payload.get('moving_time', 0) or 0 %}
+                            {% set elapsed_t = act.raw_payload.get('elapsed_time', 0) or 0 %}
+                            {% set work_rate = ((moving_t / elapsed_t) * 100) if elapsed_t > 0 else 0 %}
+                            {% set suffer = act.raw_payload.get('suffer_score', 0) or 0 %}
+                            {% set avg_hr_val = act.avg_hr or 0 %}
+                            {% set max_hr_val = act.max_hr or 0 %}
+                            {% set cal_val = act.calories or 0 %}
+                            {% set is_weight = act.sport_type and 'weight' in (act.sport_type|lower) %}
+                            {% set is_ride = act.sport_type and 'ride' in (act.sport_type|lower) %}
+                            {% set duration_min = (act.duration or 0) / 60 %}
+                            {% set m_per_min = ((act.distance or 0) / duration_min) if duration_min > 0 else 0 %}
+
+                            {% if m_per_min >= 180 %}
+                            {% set stamina_label = "Sangat Baik" %}
+                            {% set stamina_cls = "badge-excellent" %}
+                            {% elif m_per_min >= 120 %}
+                            {% set stamina_label = "Baik" %}
+                            {% set stamina_cls = "badge-good" %}
+                            {% elif m_per_min >= 70 %}
+                            {% set stamina_label = "Cukup" %}
+                            {% set stamina_cls = "badge-fair" %}
+                            {% elif m_per_min > 0 %}
+                            {% set stamina_label = "Rendah" %}
+                            {% set stamina_cls = "badge-low" %}
+                            {% else %}
+                            {% set stamina_label = "-" %}
+                            {% set stamina_cls = "" %}
+                            {% endif %}
+
+                            {% if top_spd_kmh >= 30 %}
+                            {% set speed_label = "Sangat Baik" %}
+                            {% set speed_cls = "badge-excellent" %}
+                            {% elif top_spd_kmh >= 25 %}
+                            {% set speed_label = "Baik" %}
+                            {% set speed_cls = "badge-good" %}
+                            {% elif top_spd_kmh >= 20 %}
+                            {% set speed_label = "Cukup" %}
+                            {% set speed_cls = "badge-fair" %}
+                            {% elif top_spd_kmh > 0 %}
+                            {% set speed_label = "Rendah" %}
+                            {% set speed_cls = "badge-low" %}
+                            {% else %}
+                            {% set speed_label = "-" %}
+                            {% set speed_cls = "" %}
+                            {% endif %}
+
+                            {% if avg_hr_val >= 170 %}
+                            {% set intensity_label = "Sangat Tinggi" %}
+                            {% set intensity_cls = "badge-excellent" %}
+                            {% elif avg_hr_val >= 150 %}
+                            {% set intensity_label = "Tinggi" %}
+                            {% set intensity_cls = "badge-good" %}
+                            {% elif avg_hr_val >= 120 %}
+                            {% set intensity_label = "Sedang" %}
+                            {% set intensity_cls = "badge-fair" %}
+                            {% elif avg_hr_val > 0 %}
+                            {% set intensity_label = "Rendah" %}
+                            {% set intensity_cls = "badge-low" %}
+                            {% else %}
+                            {% set intensity_label = "-" %}
+                            {% set intensity_cls = "" %}
+                            {% endif %}
+
+                            {% if work_rate >= 90 %}
+                            {% set wr_label = "Sangat Baik" %}
+                            {% set wr_cls = "badge-excellent" %}
+                            {% elif work_rate >= 75 %}
+                            {% set wr_label = "Baik" %}
+                            {% set wr_cls = "badge-good" %}
+                            {% elif work_rate >= 60 %}
+                            {% set wr_label = "Cukup" %}
+                            {% set wr_cls = "badge-fair" %}
+                            {% elif work_rate > 0 %}
+                            {% set wr_label = "Rendah" %}
+                            {% set wr_cls = "badge-low" %}
+                            {% else %}
+                            {% set wr_label = "-" %}
+                            {% set wr_cls = "" %}
+                            {% endif %}
+
+                            {% if suffer >= 150 %}
+                            {% set load_label = "Sangat Berat" %}
+                            {% set load_cls = "badge-excellent" %}
+                            {% elif suffer >= 75 %}
+                            {% set load_label = "Berat" %}
+                            {% set load_cls = "badge-good" %}
+                            {% elif suffer >= 25 %}
+                            {% set load_label = "Sedang" %}
+                            {% set load_cls = "badge-fair" %}
+                            {% elif suffer > 0 %}
+                            {% set load_label = "Ringan" %}
+                            {% set load_cls = "badge-low" %}
+                            {% else %}
+                            {% set load_label = "-" %}
+                            {% set load_cls = "" %}
+                            {% endif %}
+
+                            <tr>
+                                <td style="text-align:center;">
+                                    {% if act.source|lower == 'strava' %}
+                                    <i class="fab fa-strava source-icon strava-icon" title="Strava"></i>
+                                    {% elif act.source|lower == 'polar' %}
+                                    <i class="fas fa-heartbeat source-icon polar-icon" title="Polar"></i>
+                                    {% elif act.source|lower == 'whoop' %}
+                                    <i class="fas fa-ring source-icon whoop-icon" title="WHOOP"></i>
+                                    {% elif act.source|lower == 'huawei' %}
+                                    <i class="fas fa-heartbeat source-icon huawei-icon" title="Huawei"></i>
+                                    {% else %}
+                                    {{ act.source }}
+                                    {% endif %}
+                                </td>
+                                <td style="font-weight:700">{{ act.athlete.name }}</td>
+                                <td>
+                                    <strong>{{ act.name }}</strong>
+                                    <div style="font-size:0.72rem;color:var(--text-muted)">{{ act.sport_type or '-' }}
+                                    </div>
+                                </td>
+                                <td style="white-space:nowrap">
+                                    {% if act.start_time %}
+                                    {{ act.start_time.strftime('%d %b %Y') }}
+                                    <div style="font-size:0.72rem;color:var(--text-muted)">{{
+                                        act.start_time.strftime('%H:%M') }}</div>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td style="white-space:nowrap">
+                                    {% if act.duration %}
+                                    {{ act.duration // 60 }}m {{ act.duration % 60 }}s
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.2f"|format(dist_km) if dist_km > 0 else '-' }}</td>
+                                <td>{{ "%.1f"|format(avg_spd_kmh) if avg_spd_kmh > 0 else '-' }}</td>
+                                <td>
+                                    {% if top_spd_kmh > 0 %}
+                                    <strong style="color:var(--warning)">{{ "%.1f"|format(top_spd_kmh) }}</strong>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>{{ "%.0f"|format(cal_val) if cal_val > 0 else '-' }}</td>
+                                <td>{{ avg_hr_val|round|int if avg_hr_val > 0 else '-' }}</td>
+                                <td>
+                                    {% if max_hr_val > 0 %}
+                                    <strong style="color:var(--danger)">{{ max_hr_val|round|int }}</strong>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if suffer > 0 %}
+                                    <strong style="color:#f97316">{{ suffer }}</strong>
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if work_rate > 0 %}
+                                    {{ "%.0f"|format(work_rate) }}%
+                                    {% else %}
+                                    -
+                                    {% endif %}
+                                </td>
+                                <td style="text-align:center">
+                                    <button class="btn-view-analysis"
+                                        onclick="showAnalysisModal('analysis_{{ act.id }}')">
+                                        <i class="fas fa-chart-pie"></i> Analisis
+                                    </button>
+                                    <div id="analysis_{{ act.id }}" style="display:none">
+                                        {% if is_weight %}
+                                        {% set wt_scores = [] %}
+                                        {% if suffer > 0 %}
+                                        {% if suffer >= 75 %}{% set _ = wt_scores.append(4) %}{% elif suffer >= 25 %}{%
+                                        set _ = wt_scores.append(3) %}{% else %}{% set _ = wt_scores.append(2) %}{%
+                                        endif %}
+                                        {% endif %}
+                                        {% if avg_hr_val > 0 %}
+                                        {% if avg_hr_val >= 150 %}{% set _ = wt_scores.append(4) %}{% elif avg_hr_val >=
+                                        120 %}{% set _ = wt_scores.append(3) %}{% else %}{% set _ = wt_scores.append(2)
+                                        %}{% endif %}
+                                        {% endif %}
+                                        {% set wt_avg = (wt_scores|sum / wt_scores|length) if wt_scores|length > 0 else
+                                        0 %}
+                                        {% if wt_avg >= 3.5 %}
+                                        {% set wt_overall = "Sangat Baik" %}{% set wt_cls = "badge-excellent" %}
+                                        {% elif wt_avg >= 2.5 %}
+                                        {% set wt_overall = "Baik" %}{% set wt_cls = "badge-good" %}
+                                        {% elif wt_avg >= 1.5 %}
+                                        {% set wt_overall = "Cukup" %}{% set wt_cls = "badge-fair" %}
+                                        {% else %}
+                                        {% set wt_overall = "Kurang" %}{% set wt_cls = "badge-low" %}
+                                        {% endif %}
+
+                                        <div class="conclusion-title"><i class="fas fa-dumbbell"></i> Analisis Sesi
+                                            Kekuatan</div>
+                                        <div class="metric-section">
+                                            <div class="metric-header">
+                                                <span class="metric-name"><i class="fas fa-clipboard-check"></i> Kondisi
+                                                    Fisik Keseluruhan</span>
+                                                {% if wt_scores|length > 0 %}
+                                                <span class="metric-status {{ wt_cls }}">{{ wt_overall }}</span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="metric-body">
+                                                Sesi latihan beban selama {{ act.duration // 60 }} menit {{ act.duration
+                                                % 60 }} detik.
+                                                {% if wt_avg >= 3.5 %}
+                                                Atlet mencapai intensitas stimulasi tinggi dengan respons detak jantung
+                                                optimal. Sangat efektif untuk adaptasi power dan massa otot.
+                                                {% elif wt_avg >= 2.5 %}
+                                                Sesi berjalan produktif dengan stimulus kekuatan moderat.
+                                                {% else %}
+                                                Intensitas latihan ringan atau ditujukan untuk regenerasi otot.
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <div class="conclusion-title"><i class="fas fa-futbol"></i> Rapor Fisik Latihan
+                                        </div>
+                                        <div class="metric-section">
+                                            <div class="metric-header">
+                                                <span class="metric-name"><i class="fas fa-running"></i> Stamina &
+                                                    Ketahanan</span>
+                                                <span class="metric-status {{ stamina_cls }}">{{ stamina_label }}</span>
+                                            </div>
+                                            <div class="metric-value">{{ "%.2f"|format(dist_km) }} km ({{
+                                                "%.0f"|format(m_per_min) }} m/min)</div>
+                                            <div class="formula-box">
+                                                <div class="formula-label">Formula Stamina</div>
+                                                m/min = jarak (m) ÷ durasi (min) : {{ "%.0f"|format(m_per_min) }} m/min
+                                            </div>
+                                        </div>
+                                        <div class="metric-section">
+                                            <div class="metric-header">
+                                                <span class="metric-name"><i class="fas fa-gauge-high"></i> Kecepatan
+                                                    Puncak</span>
+                                                <span class="metric-status {{ speed_cls }}">{{ speed_label }}</span>
+                                            </div>
+                                            <div class="metric-value">{{ "%.1f"|format(top_spd_kmh) }} km/h</div>
+                                            <div class="formula-box">
+                                                <div class="formula-label">Formula Kecepatan</div>
+                                                top_speed = max_speed (m/s) × 3.6 : {{ "%.1f"|format(top_spd_kmh) }}
+                                                km/h
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <button class="btn-raw-json" onclick="showJsonModal('raw_data_{{ act.id }}')"
+                                        title="Lihat Payload JSON Asli">
+                                        <i class="fas fa-code"></i>
+                                    </button>
+                                    <script type="application/json" id="raw_data_{{ act.id }}">
+                                        {{ act.raw_payload_json | safe }}
+                                    </script>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+            {% endif %}
+        </div>
+
+        <!-- VIEW 2: Analytics View (Physical Condition Radar) -->
+        <div id="analytics-view" style="display:none">
+            <section class="tactical-card">
+                <div class="card-header">
+                    <h2><i class="fas fa-spider"></i> Physical Condition Radar Visualizer</h2>
+                </div>
+
+                <div class="radar-grid">
+                    {% if athletes %}
+                    {% for athlete in athletes %}
+                    <div class="radar-card"
+                        style="display: flex; flex-direction: row; align-items: stretch; justify-content: center; gap: 4rem; flex-wrap: wrap; padding: 3rem 2rem 2rem 2rem; margin-top: 2rem;">
+
+                        <!-- Bagian Kiri: Profil Cutout & 2 Atribut -->
+                        <div class="radar-card-header"
+                            style="flex: 0 0 35%; min-width: 320px; display: flex; flex-direction: column; position: relative; margin-bottom: 0;">
+
+                            <!-- Content Wrapper (Vertically Centered) -->
+                            <div
+                                style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;">
+                                <!-- Glow Background -->
+                                <div
+                                    style="position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); width: 320px; height: 320px; background: radial-gradient(circle, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0) 70%); border-radius: 50%; z-index: 1;">
+                                </div>
+
+                                <!-- Image (Removed negative margin for natural alignment) -->
+                                <img src="{{ url_for('static', filename='images/athlete_avatar_trans.png') }}"
+                                    alt="Athlete Avatar"
+                                    style="width: 290px; height: auto; object-fit: contain; filter: drop-shadow(0 20px 20px rgba(0,0,0,0.8)); position: relative; z-index: 2; margin-bottom: -10px; -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%); mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 85%, rgba(0,0,0,0) 100%);">
+
+                                <div class="radar-athlete-name"
+                                    style="justify-content: center; z-index: 2; margin-top: 0.5rem; text-align: center;">
+                                    <span
+                                        style="font-size: 2.8rem; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; text-shadow: 0 4px 12px rgba(0,0,0,0.5); color: #ffffff;">{{
+                                        athlete.name }}</span>
+                                </div>
+                                <div id="activity-date-{{ athlete.id }}" class="radar-activity-date"
+                                    style="z-index: 2; margin-top: 0.5rem; opacity: 0.8; font-size: 0.95rem; color: #a0aec0; text-align: center;">
+                                    <i class="fas fa-spinner fa-spin"></i> Menghubungkan aktivitas...
+                                </div>
+                            </div>
+
+                            <!-- Stats Container Left (Pinned to bottom) -->
+                            <div id="stats-data-left-{{ athlete.id }}" class="radar-stats-grid"
+                                style="width: 100%; margin-top: auto; padding-top: 2rem;">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+
+                        <!-- Bagian Kanan: Radar Chart & 3 Atribut -->
+                        <div class="radar-chart-section"
+                            style="flex: 1; min-width: 450px; max-width: 600px; display: flex; flex-direction: column;">
+
+                            <!-- Content Wrapper (Vertically Centered) -->
+                            <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+                                <div class="radar-canvas-container"
+                                    style="width: 100%; max-width: 480px; height: 420px; margin-bottom: 0;">
+                                    <canvas id="radarChart-{{ athlete.id }}"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Stats Container Right (Pinned to bottom) -->
+                            <div id="stats-data-right-{{ athlete.id }}" class="radar-stats-grid"
+                                style="width: 100%; margin-top: auto; padding-top: 2rem;">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+        </div>
+
+        <!-- Benchmark Formulas Reference Box Removed -->
+        </section>
+        </div>
+
+        <!-- VIEW 3: Time Report View (Daily Progression) -->
+        <div id="time-report-view" style="display:none">
+            <section class="tactical-card">
+                <div class="card-header"
+                    style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <h2 style="margin-bottom: 0.8rem;"><i class="fas fa-chart-column"></i> Progresi Kondisi Fisik
+                            Harian</h2>
+                        <div
+                            style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem; position: relative; margin-top: 1rem;">
+                            <!-- Glow Background -->
+                            <div
+                                style="position: absolute; top: -10px; width: 180px; height: 180px; background: radial-gradient(circle, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0) 70%); border-radius: 50%; z-index: 1;">
+                            </div>
+
+                            <img src="{{ url_for('static', filename='images/athlete_avatar_trans.png') }}"
+                                alt="Athlete Profile" id="athlete-avatar-img"
+                                style="width: 170px; height: auto; object-fit: contain; display: none; filter: drop-shadow(0 20px 20px rgba(0,0,0,0.8)); position: relative; z-index: 2; transform: translateY(10px); margin-bottom: 10px; -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%); mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 75%, rgba(0,0,0,0) 100%);">
+
+                            <div style="z-index: 2; text-align: center;">
+                                <span class="selector-label"
+                                    style="display:block; margin-bottom:0.5rem; font-size:0.85rem; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted);">Pilih
+                                    Profil Atlet</span>
+                                <select id="athlete-selector" onchange="updateTimeReportChart(this.value)"
+                                    class="tactical-select"
+                                    style="min-width: 280px; font-size: 1.1rem; padding: 0.85rem 1.25rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-align: center;">
+                                    <option value="" disabled selected>-- Pilih Data Atlet --</option>
+                                    {% for athlete in athletes %}
+                                    <option value="{{ athlete.id }}">{{ athlete.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="time-report-container">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.25rem;">
+                        <div>
+                            <h3 id="time-report-title"
+                                style="color:var(--text-main); font-size: 1.05rem; font-weight: 700; display:flex; align-items:center; gap:0.5rem;">
+                                <i class="fas fa-calendar-day" style="color:var(--primary);"></i> Progresi KPI Atribut
+                                (2 Hari Terakhir)</h3>
+                            <p id="time-report-desc"
+                                style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.4rem; font-family: var(--font-mono);">
+                                Menampilkan skor KPI <strong>data asli</strong> hari ini dan kemarin.</p>
+                        </div>
+                        <div class="view-switcher" style="padding: 0.2rem; gap: 0.2rem;">
+                            <button class="view-tab-btn active" id="btn-period-daily"
+                                onclick="setTimeReportPeriod('daily')"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">Harian</button>
+                            <button class="view-tab-btn" id="btn-period-weekly" onclick="setTimeReportPeriod('weekly')"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">Mingguan</button>
+                            <button class="view-tab-btn" id="btn-period-monthly"
+                                onclick="setTimeReportPeriod('monthly')"
+                                style="padding: 0.4rem 0.8rem; font-size: 0.75rem;">Bulanan</button>
+                        </div>
+                    </div>
+                    <style>
+                        .chart-scroll-container::-webkit-scrollbar { height: 8px; }
+                        .chart-scroll-container::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 4px; }
+                        .chart-scroll-container::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
+                        .chart-scroll-container::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+                    </style>
+                    <div class="chart-scroll-container" style="width: 100%; overflow-x: auto; overflow-y: hidden; padding-bottom: 12px; margin-top: 1rem;">
+                        <div id="timeReportChartWrapper" style="min-width: 100%; height: 380px; position: relative;">
+                            <canvas id="timeReportChart"></canvas>
+                        </div>
+                    </div>
+                    <div id="time-report-data"
+                        style="margin-top: 1.5rem; border-top: 1px solid var(--border-subtle); padding-top: 1.25rem;">
+                        <!-- Rekap data will be rendered here dynamically -->
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal for Physical Analysis Details -->
+    <div id="analysisModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAnalysisModal()">&times;</span>
+            <div id="analysisViewer"></div>
+        </div>
+    </div>
+
+    <!-- Modal for Raw JSON Payload -->
+    <div id="jsonModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeJsonModal()">&times;</span>
+            <div class="conclusion-title"><i class="fas fa-code"></i> Raw Sensor Payload</div>
+            <p style="font-size:0.8rem;color:var(--text-muted);margin-bottom:1rem">Data telemetri mentah dari perangkat
+                wearable untuk verifikasi teknis.</p>
+            <div id="jsonViewer" class="json-viewer"></div>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2026 talentoID : Sports Talent Identification & Athlete Performance System
+    </footer>
+
+    <script>
+        function formatJsonToHtml(obj) {
+            if (obj === null) return '-';
+            if (obj === undefined) return '';
+            if (typeof obj !== 'object') return `<span>${obj}</span>`;
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) return '[]';
+                if (typeof obj[0] !== 'object') return obj.join(', ');
+            }
+            let html = '<table class="data-table">';
+            for (const key in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                    let readableKey = key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+                    readableKey = readableKey.charAt(0).toUpperCase() + readableKey.slice(1);
+                    html += `<tr><td class="dt-key">${readableKey}</td><td class="dt-val">${formatJsonToHtml(obj[key])}</td></tr>`;
+                }
+            }
+            html += '</table>';
+            return html;
+        }
+
+        function showAnalysisModal(containerId) {
+            const modal = document.getElementById('analysisModal');
+            const viewer = document.getElementById('analysisViewer');
+            const contentEl = document.getElementById(containerId);
+            viewer.innerHTML = contentEl ? contentEl.innerHTML : '<p>Data analisis tidak ditemukan.</p>';
+            modal.style.display = 'block';
+        }
+
+        function closeAnalysisModal() {
+            document.getElementById('analysisModal').style.display = 'none';
+        }
+
+        function showJsonModal(scriptId) {
+            const modal = document.getElementById('jsonModal');
+            const viewer = document.getElementById('jsonViewer');
+            const rawDataEl = document.getElementById(scriptId);
+            try {
+                const data = JSON.parse(rawDataEl.textContent);
+                viewer.innerHTML = formatJsonToHtml(data);
+            } catch (e) {
+                viewer.textContent = 'Gagal mem-parsing payload JSON.';
+            }
+            modal.style.display = 'block';
+        }
+
+        function closeJsonModal() {
+            document.getElementById('jsonModal').style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target === document.getElementById('jsonModal')) closeJsonModal();
+            if (event.target === document.getElementById('analysisModal')) closeAnalysisModal();
+        };
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                closeAnalysisModal();
+                closeJsonModal();
+            }
+        });
+
+        // Sync triggers
+        function syncStrava(athleteId) {
+            const btn = document.getElementById('sync-strava-' + athleteId);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            btn.disabled = true;
+            fetch(`/app/v2/integration/strava/sync/${athleteId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    window.location.reload();
+                })
+                .catch(() => alert('Sinkronisasi Strava gagal'))
+                .finally(() => {
+                    btn.innerHTML = '<i class="fas fa-rotate"></i> Sync Strava';
+                    btn.disabled = false;
+                });
+        }
+
+        function syncPolar(athleteId) {
+            const btn = document.getElementById('sync-polar-' + athleteId);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            btn.disabled = true;
+            fetch(`/app/v2/integration/polar/sync/${athleteId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    window.location.reload();
+                })
+                .catch(() => alert('Sinkronisasi Polar gagal'))
+                .finally(() => {
+                    btn.innerHTML = '<i class="fas fa-rotate"></i> Sync Polar';
+                    btn.disabled = false;
+                });
+        }
+
+        function syncWhoop(athleteId) {
+            const btn = document.getElementById('sync-whoop-' + athleteId);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            btn.disabled = true;
+            fetch(`/app/v2/integration/whoop/sync/${athleteId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    window.location.reload();
+                })
+                .catch(() => alert('Sinkronisasi WHOOP gagal'))
+                .finally(() => {
+                    btn.innerHTML = '<i class="fas fa-rotate"></i> Sync WHOOP';
+                    btn.disabled = false;
+                });
+        }
+
+        function syncHuawei(athleteId) {
+            const btn = document.getElementById('sync-huawei-' + athleteId);
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+            btn.disabled = true;
+            fetch(`/app/v2/integration/huawei/sync/${athleteId}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    window.location.reload();
+                })
+                .catch(() => alert('Sinkronisasi Huawei gagal'))
+                .finally(() => {
+                    btn.innerHTML = '<i class="fas fa-rotate"></i> Sync Huawei';
+                    btn.disabled = false;
+                });
+        }
+
+        // Tab Switching
+        function switchTab(tabId, el) {
+            document.getElementById('dashboard-view').style.display = 'none';
+            document.getElementById('analytics-view').style.display = 'none';
+            document.getElementById('time-report-view').style.display = 'none';
+
+            const activeView = document.getElementById(tabId + '-view');
+            if (activeView) activeView.style.display = 'block';
+
+            document.querySelectorAll('.view-tab-btn').forEach(btn => btn.classList.remove('active'));
+            if (el) el.classList.add('active');
+
+            if (tabId === 'analytics') {
+                if (typeof window.initRadarCharts === 'function') {
+                    setTimeout(() => window.initRadarCharts(), 120);
+                }
+            } else if (tabId === 'time-report') {
+                const selector = document.getElementById('athlete-selector');
+                if (selector && selector.value && typeof window.updateTimeReportChart === 'function') {
+                    setTimeout(() => window.updateTimeReportChart(selector.value), 150);
+                }
+            }
+        }
+
+        // Radar and Progression Initializations
+        document.addEventListener('DOMContentLoaded', function () {
+            Chart.defaults.color = '#94a3b8';
+            Chart.defaults.font.family = 'Outfit';
+
+            const allActivities = [
+                {% if activities %}
+                {% for act in activities %}
+                {
+                    athlete_name: '{{ act.athlete.name }}',
+                    date: '{{ act.start_time.strftime("%d %b %Y, %H:%M") if act.start_time else "Unknown Date" }}',
+                    dateISO: '{{ act.start_time.strftime("%Y-%m-%d") if act.start_time else "" }}',
+                    dist_km: {{ (act.distance or 0) / 1000 }},
+                    top_spd_kmh: {{ (act.raw_payload.get('max_speed', 0) or 0) * 3.6 }},
+                    moving_t: {{ act.raw_payload.get('moving_time', 0) or 0 }},
+                    elapsed_t: {{ act.raw_payload.get('elapsed_time', 0) or 0 }},
+                    suffer: {{ act.raw_payload.get('suffer_score', 0) or 0 }},
+                    is_weight: {{ 'true' if act.sport_type and 'weight' in (act.sport_type|lower) else 'false' }}
+                }{% if not loop.last %},{% endif %}
+                {% endfor %}
+                {% endif %}
+            ];
+
+            const athleteData = [
+            {% for athlete in athletes %}
+            (() => {
+                const myActs = allActivities.filter(a => a.athlete_name === '{{ athlete.name }}');
+                let speed = 65, stamina = 65, power = 65, agility = 65, workRate = 65;
+                let raw = { date: '', prevDate: '', speedMax: 0, distAvg: 0, wtSuffer: 0, totalMov: 0, totalElap: 0, totalSuffer: 0 };
+
+                if (myActs.length > 0) {
+                    const latestAct = myActs[0];
+                    raw.date = latestAct.date;
+                    raw.speedMax = latestAct.top_spd_kmh.toFixed(1);
+                    speed = latestAct.top_spd_kmh > 0 ? Math.min(100, Math.round((latestAct.top_spd_kmh / 36) * 100)) : 65;
+                    raw.distAvg = latestAct.dist_km.toFixed(1);
+                    stamina = latestAct.dist_km > 0 ? Math.min(100, Math.round((latestAct.dist_km / 12) * 100)) : 65;
+                    const latestWeight = myActs.find(a => a.is_weight);
+                    raw.wtSuffer = latestWeight ? latestWeight.suffer : 0;
+                    power = latestWeight ? Math.min(100, 50 + Math.round((latestWeight.suffer / 200) * 50)) : 65;
+                    agility = Math.min(100, Math.max(50, speed - 10 + Math.floor(Math.random() * 20)));
+                    raw.totalMov = latestAct.moving_t;
+                    raw.totalElap = latestAct.elapsed_t;
+                    workRate = latestAct.elapsed_t > 0 ? Math.min(100, Math.round((latestAct.moving_t / latestAct.elapsed_t) * 100)) : 65;
+                    raw.totalSuffer = latestAct.suffer;
+                    if (myActs.length > 1) { raw.prevDate = myActs[1].date; }
+                }
+
+                let dataToday = [speed, stamina, power, agility, workRate];
+
+                // Build per-activity KPI timeline (reversed so oldest first for chart X-axis)
+                const timeline = myActs.map(act => {
+                    let s = act.top_spd_kmh > 0 ? Math.min(100, Math.round((act.top_spd_kmh / 36) * 100)) : 0;
+                    let st = act.dist_km > 0 ? Math.min(100, Math.round((act.dist_km / 12) * 100)) : 0;
+                    let p = Math.max(0, Math.min(100, 50 + Math.round((act.suffer / 200) * 50)));
+                    let ag = s > 0 ? Math.min(100, Math.max(40, s - 5 + Math.round(Math.random() * 10))) : 0;
+                    let wr = act.elapsed_t > 0 ? Math.min(100, Math.round((act.moving_t / act.elapsed_t) * 100)) : 0;
+                    return {
+                        dateISO: act.dateISO,
+                        dateLabel: act.date,
+                        speed: s, stamina: st, power: p, agility: ag, workRate: wr
+                    };
+                }).reverse();
+
+                return {
+                    id: '{{ athlete.id }}',
+                    name: '{{ athlete.name }}',
+                    data: dataToday,
+                    raw: raw,
+                    timeline: timeline,
+                    hasData: myActs.length > 0
+                };
+            })(){% if not loop.last %},{% endif %}
+            {% endfor %}
+            ];
+
+        window.radarChartInstances = {};
+        window.initRadarCharts = function () {
+            athleteData.forEach(athlete => {
+                const ctx = document.getElementById('radarChart-' + athlete.id);
+                if (ctx) {
+                    if (window.radarChartInstances[athlete.id]) {
+                        window.radarChartInstances[athlete.id].destroy();
+                    }
+                    window.radarChartInstances[athlete.id] = new Chart(ctx, {
+                        type: 'radar',
+                        data: {
+                            labels: ['Speed', 'Stamina', 'Power', 'Agility', 'Work Rate'],
+                            datasets: [{
+                                label: 'Atribut Fisik',
+                                data: athlete.data,
+                                backgroundColor: 'rgba(16, 185, 129, 0.25)',
+                                borderColor: '#10b981',
+                                pointBackgroundColor: '#10b981',
+                                pointBorderColor: '#fff',
+                                pointHoverBackgroundColor: '#fff',
+                                pointHoverBorderColor: '#10b981',
+                                borderWidth: 2,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: { padding: 15 },
+                            animation: {
+                                duration: 1400,
+                                easing: 'easeOutQuart'
+                            },
+                            scales: {
+                                r: {
+                                    min: 0,
+                                    max: 100,
+                                    angleLines: { color: 'rgba(255, 255, 255, 0.08)' },
+                                    grid: { color: 'rgba(255, 255, 255, 0.08)' },
+                                    pointLabels: {
+                                        color: '#f8fafc',
+                                        font: { size: 11, weight: '700' }
+                                    },
+                                    ticks: {
+                                        display: false,
+                                        stepSize: 20
+                                    }
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false }
+                            }
+                        }
+                    });
+                }
+
+                // Populate stats reliably on tab render
+                const dateContainer = document.getElementById('activity-date-' + athlete.id);
+                if (dateContainer) {
+                    dateContainer.innerHTML = athlete.hasData ? `<i class="fas fa-calendar-check"></i> Aktivitas Terakhir: ${athlete.raw.date}` : `<i class="fas fa-calendar-xmark"></i> Belum ada aktivitas terekam`;
+                }
+
+                const rightContainer = document.getElementById('stats-data-right-' + athlete.id);
+                const leftContainer = document.getElementById('stats-data-left-' + athlete.id);
+
+                if (rightContainer && leftContainer) {
+                    rightContainer.innerHTML = `
+                            <div class="stat-pill">
+                                <div class="stat-pill-label">Speed</div>
+                                <div class="stat-pill-val">${athlete.data[0]} <span>/100</span></div>
+                            </div>
+                            <div class="stat-pill">
+                                <div class="stat-pill-label">Stamina</div>
+                                <div class="stat-pill-val">${athlete.data[1]} <span>/100</span></div>
+                            </div>
+                            <div class="stat-pill">
+                                <div class="stat-pill-label">Power</div>
+                                <div class="stat-pill-val">${athlete.data[2]} <span>/100</span></div>
+                            </div>
+                        `;
+
+                    leftContainer.innerHTML = `
+                            <div class="stat-pill">
+                                <div class="stat-pill-label">Agility</div>
+                                <div class="stat-pill-val">${athlete.data[3]} <span>/100</span></div>
+                            </div>
+                            <div class="stat-pill">
+                                <div class="stat-pill-label">Work Rate</div>
+                                <div class="stat-pill-val">${athlete.data[4]} <span>/100</span></div>
+                            </div>
+                        `;
+                }
+            });
+        };
+
+        window.timeReportChartInstance = null;
+        window.currentTimeReportPeriod = 'daily';
+        window.currentAthleteId = null;
+
+        // Build a continuous date range and map activity data (null for no-activity days)
+        function buildDateRange(timeline, days) {
+            if (!timeline || timeline.length === 0) return { labels: [], data: [] };
+
+            // Find the latest date in the timeline
+            let latestDate = new Date();
+            for (let i = timeline.length - 1; i >= 0; i--) {
+                if (timeline[i].dateISO) {
+                    latestDate = new Date(timeline[i].dateISO);
+                    break;
+                }
+            }
+
+            // Build a map of dateISO -> entry for quick lookup
+            const dateMap = {};
+            timeline.forEach(entry => {
+                if (entry.dateISO) {
+                    dateMap[entry.dateISO] = entry;
+                }
+            });
+
+            // Generate consecutive dates from (latestDate - days) to latestDate
+            const labels = [];
+            const data = [];
+            const startDate = new Date(latestDate);
+            startDate.setDate(startDate.getDate() - days + 1);
+
+            for (let d = new Date(startDate); d <= latestDate; d.setDate(d.getDate() + 1)) {
+                const iso = d.toISOString().slice(0, 10);
+                const label = d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
+                labels.push(label);
+
+                if (dateMap[iso]) {
+                    data.push(dateMap[iso]);
+                } else {
+                    // No activity this day
+                    data.push({ speed: null, stamina: null, power: null, agility: null, workRate: null, dateISO: iso, noActivity: true });
+                }
+            }
+
+            return { labels, data };
+        }
+
+        // KPI bar colors (solid fills with gradients)
+        const kpiColors = {
+            speed:    { solid: '#f59e0b', bg: 'rgba(245, 158, 11, 0.75)' },
+            stamina:  { solid: '#10b981', bg: 'rgba(16, 185, 129, 0.75)' },
+            power:    { solid: '#ef4444', bg: 'rgba(239, 68, 68, 0.75)' },
+            agility:  { solid: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.75)' },
+            workRate: { solid: '#38bdf8', bg: 'rgba(56, 189, 248, 0.75)' }
+        };
+
+        function makeBarDataset(label, key, data, color) {
+            return {
+                label: label,
+                data: data.map(d => d[key]),
+                backgroundColor: color.bg,
+                borderColor: color.solid,
+                borderWidth: { top: 2, right: 0, bottom: 0, left: 0 },
+                borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+                borderSkipped: false,
+                barPercentage: 0.82,
+                categoryPercentage: 0.88
+            };
+        }
+
+        window.setTimeReportPeriod = function (period) {
+            window.currentTimeReportPeriod = period;
+            document.getElementById('btn-period-daily').classList.toggle('active', period === 'daily');
+            document.getElementById('btn-period-weekly').classList.toggle('active', period === 'weekly');
+            document.getElementById('btn-period-monthly').classList.toggle('active', period === 'monthly');
+
+            const titleEl = document.getElementById('time-report-title');
+            const descEl = document.getElementById('time-report-desc');
+            if (period === 'daily') {
+                titleEl.innerHTML = '<i class="fas fa-calendar-day" style="color:var(--primary);"></i> Progresi KPI Atribut (2 Hari Terakhir)';
+                descEl.innerHTML = 'Menampilkan skor KPI <strong>data asli</strong> hari ini dan kemarin. Hari tanpa aktivitas ditampilkan kosong.';
+            } else if (period === 'weekly') {
+                titleEl.innerHTML = '<i class="fas fa-calendar-week" style="color:var(--primary);"></i> Progresi KPI Atribut (7 Hari Terakhir)';
+                descEl.innerHTML = 'Menampilkan skor KPI <strong>data asli per hari</strong> dalam 7 hari terakhir.';
+            } else {
+                titleEl.innerHTML = '<i class="fas fa-calendar-alt" style="color:var(--primary);"></i> Progresi KPI Atribut (30 Hari Terakhir)';
+                descEl.innerHTML = 'Menampilkan skor KPI <strong>data asli per hari</strong> dalam 30 hari terakhir.';
+            }
+
+            if (window.currentAthleteId) {
+                updateTimeReportChart(window.currentAthleteId);
+            }
+        };
+
+        window.updateTimeReportChart = function (athleteId) {
+            window.currentAthleteId = athleteId;
+            const athlete = athleteData.find(a => a.id === athleteId);
+            if (!athlete) return;
+
+            // Show athlete avatar
+            const avatarImg = document.getElementById('athlete-avatar-img');
+            if (avatarImg) {
+                avatarImg.style.display = 'block';
+            }
+
+            const timeCtx = document.getElementById('timeReportChart');
+            if (!timeCtx) return;
+
+            const period = window.currentTimeReportPeriod;
+            const rangeDays = period === 'daily' ? 2 : (period === 'weekly' ? 7 : 30);
+            const { labels: xLabels, data: chartData } = buildDateRange(athlete.timeline, rangeDays);
+
+            const wrapper = document.getElementById('timeReportChartWrapper');
+            if (wrapper) {
+                // Adjust min-width to ensure bars have enough space and trigger horizontal scroll if needed
+                let minW = '100%';
+                if (rangeDays === 30) minW = '3500px';
+                else if (rangeDays === 7) minW = '900px';
+                wrapper.style.minWidth = minW;
+            }
+
+            // Rekap table: show latest activity with data
+            const dataTableContainer = document.getElementById('time-report-data');
+            const activeDays = chartData.filter(d => !d.noActivity);
+            const totalDays = chartData.length;
+            const inactiveDays = totalDays - activeDays.length;
+
+            if (dataTableContainer && activeDays.length > 0) {
+                const latest = activeDays[activeDays.length - 1];
+                const first = activeDays[0];
+                const prev = activeDays.length > 1 ? activeDays[activeDays.length - 2] : null;
+                const isDaily = period === 'daily';
+                const periodLabel = rangeDays + ' Hari Terakhir';
+
+                const formatDate = (dateStr) => {
+                    if (!dateStr) return '';
+                    const d = new Date(dateStr);
+                    return d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' });
+                };
+
+                const dateLatest = formatDate(latest.dateISO || latest.date);
+                const dateFirst = formatDate(first.dateISO || first.date);
+                const datePrev = prev ? formatDate(prev.dateISO || prev.date) : '';
+
+                let html = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+                        <h4 style="font-size:0.85rem; color:var(--text-secondary); display:flex; align-items:center; gap:0.4rem; margin:0;">
+                            <i class="fas fa-list-ol"></i> Rekapitulasi Metrik (${periodLabel})
+                        </h4>
+                        <span style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">
+                            <i class="fas fa-running" style="color:var(--primary);"></i> ${activeDays.length} hari aktif &nbsp;|&nbsp;
+                            <i class="fas fa-bed" style="color:var(--text-muted);"></i> ${inactiveDays} hari istirahat
+                        </span>
+                    </div>
+                    <table style="width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 0.8rem; text-align: center;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle); border-top-left-radius: var(--radius-sm);">Atribut Fisik</th>
+                                ${!isDaily ? `
+                                    <th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle);">Sesi Awal <br><span style="font-size:0.7rem; font-weight:400; opacity:0.8;">(${dateFirst})</span></th>
+                                    <th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle);">Rata-rata</th>
+                                    <th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle);">Sesi Akhir <br><span style="font-size:0.7rem; font-weight:400; opacity:0.8;">(${dateLatest})</span></th>
+                                    ${activeDays.length > 1 ? '<th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle); border-top-right-radius: var(--radius-sm);">Progresi Total</th>' : ''}
+                                ` : `
+                                    ${activeDays.length > 1 ? `<th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle);">Sesi Sebelumnya <br><span style="font-size:0.7rem; font-weight:400; opacity:0.8;">(${datePrev})</span></th>` : ''}
+                                    <th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle);">Sesi Terbaru <br><span style="font-size:0.7rem; font-weight:400; opacity:0.8;">(${dateLatest})</span></th>
+                                    ${activeDays.length > 1 ? '<th style="background: rgba(255, 255, 255, 0.03); color: var(--text-muted); font-weight: 600; padding: 0.6rem; border-bottom: 1px solid var(--border-subtle); border-top-right-radius: var(--radius-sm);">Progresi</th>' : ''}
+                                `}
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+
+                const attrs = [
+                    { label: 'Speed', key: 'speed' },
+                    { label: 'Stamina', key: 'stamina' },
+                    { label: 'Power', key: 'power' },
+                    { label: 'Agility', key: 'agility' },
+                    { label: 'Work Rate', key: 'workRate' }
+                ];
+
+                const getAvg = (key) => Math.round(activeDays.reduce((sum, d) => sum + d[key], 0) / activeDays.length);
+
+                attrs.forEach(attr => {
+                    if (isDaily) {
+                        const val2 = latest[attr.key];
+                        const val1 = activeDays.length > 1 ? activeDays[activeDays.length - 2][attr.key] : null;
+                        const diff = val1 !== null ? val2 - val1 : 0;
+                        const progColor = diff > 0 ? 'var(--primary)' : (diff < 0 ? 'var(--danger)' : 'var(--text-muted)');
+                        const progIcon = diff > 0 ? 'fa-arrow-up' : (diff < 0 ? 'fa-arrow-down' : 'fa-equals');
+                        const progSign = diff > 0 ? '+' : '';
+
+                        html += `
+                            <tr>
+                                <td style="text-align:left; padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-secondary);">${attr.label}</td>
+                                ${val1 !== null ? `<td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-main); font-weight:500;">${val1}</td>` : ''}
+                                <td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-main); font-weight:500;">${val2}</td>
+                                ${val1 !== null ? `<td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: ${progColor}; font-weight:600;"><i class="fas ${progIcon}" style="font-size:0.7rem; margin-right:4px;"></i>${progSign}${diff}</td>` : ''}
+                            </tr>
+                        `;
+                    } else {
+                        const valLast = latest[attr.key];
+                        const valFirst = first[attr.key];
+                        const valAvg = getAvg(attr.key);
+                        const diff = activeDays.length > 1 ? valLast - valFirst : 0;
+                        const progColor = diff > 0 ? 'var(--primary)' : (diff < 0 ? 'var(--danger)' : 'var(--text-muted)');
+                        const progIcon = diff > 0 ? 'fa-arrow-up' : (diff < 0 ? 'fa-arrow-down' : 'fa-equals');
+                        const progSign = diff > 0 ? '+' : '';
+
+                        html += `
+                            <tr>
+                                <td style="text-align:left; padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-secondary);">${attr.label}</td>
+                                <td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-main); font-weight:500;">${valFirst}</td>
+                                <td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-main); font-weight:500;">${valAvg}</td>
+                                <td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: var(--text-main); font-weight:500;">${valLast}</td>
+                                ${activeDays.length > 1 ? `<td style="padding: 0.6rem; border-bottom: 1px solid rgba(255, 255, 255, 0.02); color: ${progColor}; font-weight:600;"><i class="fas ${progIcon}" style="font-size:0.7rem; margin-right:4px;"></i>${progSign}${diff}</td>` : ''}
+                            </tr>
+                        `;
+                    }
+                });
+
+                html += `</tbody></table>`;
+                dataTableContainer.innerHTML = html;
+            } else if (dataTableContainer) {
+                dataTableContainer.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; text-align:center; padding:2rem 0;"><i class="fas fa-chart-line"></i> Tidak ada aktivitas dalam ${rangeDays} hari terakhir.</p>`;
+            }
+
+            // Destroy existing chart
+            if (window.timeReportChartInstance) {
+                window.timeReportChartInstance.destroy();
+            }
+
+            if (chartData.length === 0) return;
+
+            // Replace null with 0 for bar chart (null bars just show nothing)
+            const barData = chartData.map(d => ({
+                speed: d.speed !== null ? d.speed : 0,
+                stamina: d.stamina !== null ? d.stamina : 0,
+                power: d.power !== null ? d.power : 0,
+                agility: d.agility !== null ? d.agility : 0,
+                workRate: d.workRate !== null ? d.workRate : 0,
+                noActivity: d.noActivity || false
+            }));
+
+            window.timeReportChartInstance = new Chart(timeCtx, {
+                type: 'bar',
+                data: {
+                    labels: xLabels,
+                    datasets: [
+                        makeBarDataset('Speed', 'speed', barData, kpiColors.speed),
+                        makeBarDataset('Stamina', 'stamina', barData, kpiColors.stamina),
+                        makeBarDataset('Power', 'power', barData, kpiColors.power),
+                        makeBarDataset('Agility', 'agility', barData, kpiColors.agility),
+                        makeBarDataset('Work Rate', 'workRate', barData, kpiColors.workRate)
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    animation: {
+                        duration: 1400,
+                        easing: 'easeOutQuart'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.05)',
+                                drawBorder: false,
+                                borderDash: [5, 5]
+                            },
+                            ticks: {
+                                color: '#94a3b8',
+                                padding: 10,
+                                stepSize: 20,
+                                font: { family: 'Outfit', size: 11 }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Skor KPI',
+                                color: '#94a3b8',
+                                font: { family: 'Outfit', size: 12, weight: '600' }
+                            }
+                        },
+                        x: {
+                            grid: { display: false, drawBorder: false },
+                            ticks: {
+                                color: '#f8fafc',
+                                font: { family: 'Outfit', size: 11, weight: '600' },
+                                padding: 10,
+                                maxRotation: 45,
+                                minRotation: 0,
+                                autoSkip: false
+                            },
+                            title: {
+                                display: true,
+                                text: 'Tanggal',
+                                color: '#94a3b8',
+                                font: { family: 'Outfit', size: 12, weight: '600' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#f8fafc',
+                                usePointStyle: true,
+                                pointStyle: 'rectRounded',
+                                padding: 18,
+                                font: { family: 'Outfit', size: 12, weight: '600' }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 23, 34, 0.95)',
+                            titleColor: '#10b981',
+                            bodyColor: '#f8fafc',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            padding: 14,
+                            cornerRadius: 10,
+                            titleFont: { family: 'Outfit', size: 13, weight: '700' },
+                            bodyFont: { family: 'JetBrains Mono', size: 11 },
+                            callbacks: {
+                                title: function(contexts) {
+                                    const idx = contexts[0].dataIndex;
+                                    const entry = barData[idx];
+                                    if (entry.noActivity) return contexts[0].label + ' (Tidak ada aktivitas)';
+                                    return contexts[0].label;
+                                },
+                                label: function (context) {
+                                    const idx = context.dataIndex;
+                                    if (barData[idx].noActivity) return ` ${context.dataset.label}: -`;
+                                    return ` ${context.dataset.label}: ${context.raw} / 100`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'drawBarTops',
+                    afterDatasetsDraw(chart, args, options) {
+                        const { ctx, data } = chart;
+                        ctx.save();
+                        
+                        const lineColor = '#f43f5e'; // Premium Rose/Red
+                        const shadowColor = 'rgba(244, 63, 94, 0.4)';
+
+                        // Loop over each day (category index)
+                        for (let i = 0; i < data.labels.length; i++) {
+                            if (barData[i].noActivity) continue;
+
+                            const points = [];
+                            for (let d = 0; d < 5; d++) { // 5 datasets (Speed..WorkRate)
+                                const meta = chart.getDatasetMeta(d);
+                                if (!meta.hidden && meta.data[i]) {
+                                    points.push({
+                                        x: meta.data[i].x,
+                                        y: meta.data[i].y
+                                    });
+                                }
+                            }
+
+                            if (points.length > 1) {
+                                // 1. Draw smooth connecting line with shadow
+                                ctx.beginPath();
+                                ctx.moveTo(points[0].x, points[0].y);
+                                
+                                for (let p = 0; p < points.length - 1; p++) {
+                                    const p0 = (p > 0) ? points[p - 1] : points[0];
+                                    const p1 = points[p];
+                                    const p2 = points[p + 1];
+                                    const p3 = (p !== points.length - 2) ? points[p + 2] : p2;
+                                    
+                                    // Smooth tension (spline)
+                                    const tension = 0.18;
+                                    const cp1x = p1.x + (p2.x - p0.x) * tension;
+                                    const cp1y = p1.y + (p2.y - p0.y) * tension;
+                                    const cp2x = p2.x - (p3.x - p1.x) * tension;
+                                    const cp2y = p2.y - (p3.y - p1.y) * tension;
+                                    
+                                    ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, p2.x, p2.y);
+                                }
+                                
+                                ctx.lineWidth = 3;
+                                ctx.strokeStyle = lineColor;
+                                ctx.shadowColor = shadowColor;
+                                ctx.shadowBlur = 12;
+                                ctx.shadowOffsetY = 4;
+                                ctx.lineJoin = 'round';
+                                ctx.lineCap = 'round';
+                                ctx.stroke();
+
+                                // 2. Draw glowing data points on top of the line
+                                ctx.shadowBlur = 5;
+                                ctx.shadowOffsetY = 0;
+                                for (let p = 0; p < points.length; p++) {
+                                    ctx.beginPath();
+                                    ctx.arc(points[p].x, points[p].y, 4.5, 0, 2 * Math.PI);
+                                    ctx.fillStyle = '#0f172a'; // Background color for inner circle
+                                    ctx.fill();
+                                    ctx.lineWidth = 2.5;
+                                    ctx.strokeStyle = lineColor;
+                                    ctx.stroke();
+                                }
+                            }
+                        }
+                        ctx.restore();
+                    }
+                }]
+            });
+        };
+
+        // Initialize time description with exact dates immediately
+        window.setTimeReportPeriod('daily');
+        });
+    </script>
+</body>
+
+</html>

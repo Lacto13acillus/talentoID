@@ -2,6 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Dashboard HTML
+    path('dashboard/', views.integrations_page, name='integrations_page'),
+    
     # Strava
     path('strava/auth/<str:athlete_id>', views.strava_auth, name='strava_auth'),
     path('strava/callback', views.strava_callback, name='strava_callback'),

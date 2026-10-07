@@ -3,7 +3,45 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 from player.models import player
+from integration.models import ActivityLog
 from integration.services import strava_service, terra_service, whoop_service, polar_service, huawei_service
+
+# =======================
+# DASHBOARD VIEWS
+# =======================
+def integrations_page(request):
+    athletes_qs = player.objects.prefetch_related('integration').all()
+    athletes = []
+    for a in athletes_qs:
+        integration = getattr(a, 'integration', None)
+        athletes.append({
+            'id': a.player,
+            'name': a.nama,
+            'strava_access_token': integration.strava_access_token if integration else None,
+            'polar_access_token': integration.polar_access_token if integration else None,
+            'whoop_access_token': integration.whoop_access_token if integration else None,
+            'huawei_access_token': integration.huawei_access_token if integration else None,
+        })
+        
+    activities_qs = ActivityLog.objects.select_related('player').all().order_by('-start_time')
+    activities = []
+    for act in activities_qs:
+        activities.append({
+            'id': act.id,
+            'athlete_name': act.player.nama,
+            'athlete_id': act.player.player,
+            'source': act.source,
+            'sport_type': act.sport_type,
+            'start_time': act.start_time.isoformat() if act.start_time else '',
+            'duration': act.duration,
+            'distance': act.distance,
+            'calories': act.calories,
+            'avg_hr': act.avg_hr,
+            'max_hr': act.max_hr,
+            'raw_payload_json': json.dumps(act.raw_payload) if act.raw_payload else '{}'
+        })
+        
+    return render(request, 'integrations.html', {'athletes': athletes, 'activities': activities})
 
 # =======================
 # STRAVA VIEWS
