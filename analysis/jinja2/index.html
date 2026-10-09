@@ -1,0 +1,2698 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>talentoID : Sports Talent Identification & Performance Hub</title>
+  <meta name="description" content="Platform analitika performa dan identifikasi bakat atletik olahraga berbasis visi komputer dan wearable telemetry.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f14;
+      --bg-panel: #111722;
+      --bg-surface: #16202c;
+      --bg-surface-hover: #1e2b3b;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-focus: rgba(16, 185, 129, 0.4);
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-dim: rgba(16, 185, 129, 0.12);
+      --purple: #8b5cf6;
+      --purple-dim: rgba(139, 92, 246, 0.12);
+      --danger: #ef4444;
+      --danger-dim: rgba(239, 68, 68, 0.12);
+      --warning: #f59e0b;
+      --warning-dim: rgba(245, 158, 11, 0.12);
+      --info: #38bdf8;
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-panel: 0 16px 36px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    *:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-base);
+    }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.55;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Micro-noise texture for digital depth */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Tactical Navigation Bar ── */
+    header {
+      background: rgba(11, 15, 20, 0.85);
+      padding: 0.9rem 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #10b981, #047857);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+      color: #fff;
+      font-size: 1.15rem;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .brand-title .accent-id {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.3rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .nav-link:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+      background: var(--primary-dim);
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .status-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* ── Main Layout Canvas ── */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* ── Page Hero / Intro ── */
+    .page-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hero-title-group h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+    }
+
+    .hero-title-group p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .session-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      background: var(--bg-panel);
+      padding: 0.4rem 0.8rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+    }
+
+    /* ── Tactical Card Container ── */
+    .tactical-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-panel);
+      position: relative;
+    }
+
+    .card-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .section-title i {
+      color: var(--primary);
+    }
+
+    .section-subtext {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .required-asterisk {
+      color: var(--danger);
+      margin-left: 2px;
+      font-weight: 700;
+    }
+
+    /* ── Model Training Selector ── */
+    .type-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .type-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.1rem 1.25rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .type-btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: var(--text-main);
+      transform: translateY(-1px);
+    }
+
+    .type-btn.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    }
+
+    .type-btn i {
+      font-size: 1.2rem;
+    }
+
+    /* ── Analysis Mode Toggle (Auto AI vs Manual Admin) ── */
+    .analysis-mode-container {
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .analysis-mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+      margin-top: 0.85rem;
+    }
+
+    .analysis-mode-btn {
+      padding: 0.9rem 1.25rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.88rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .analysis-mode-btn:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+    }
+
+    .analysis-mode-btn.active.auto-mode {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
+    }
+
+    .analysis-mode-btn.active.manual-mode {
+      background: var(--purple-dim);
+      border-color: var(--purple);
+      color: var(--purple);
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.12);
+    }
+
+    /* ── Status Banners for Selected Mode ── */
+    .auto-type-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.15rem;
+      background: var(--primary-dim);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
+      color: var(--text-main);
+    }
+
+    .auto-type-badge i {
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+
+    .auto-type-badge .type-name {
+      font-weight: 700;
+      color: var(--primary);
+      text-transform: capitalize;
+    }
+
+    .auto-type-badge .type-desc {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    .manual-mode-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1.15rem;
+      background: var(--purple-dim);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.25rem;
+      font-size: 0.88rem;
+    }
+
+    .manual-mode-badge i {
+      color: var(--purple);
+      font-size: 1.1rem;
+    }
+
+    .manual-mode-badge .badge-text {
+      font-weight: 700;
+      color: var(--purple);
+    }
+
+    .manual-mode-badge .badge-desc {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      margin-left: auto;
+    }
+
+    /* ── Player Detection Pipeline ── */
+    .player-names-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .detect-mode-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+
+    .detect-mode-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      padding: 0.65rem 0.9rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .detect-mode-btn:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+    }
+
+    .detect-mode-btn.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .auto-detect-info {
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.84rem;
+      color: var(--text-secondary);
+    }
+
+    .auto-detect-info .highlight {
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .ocr-engine-select {
+      margin-top: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .ocr-engine-select label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .tactical-dropdown {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.6rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .tactical-dropdown:focus {
+      border-color: var(--primary);
+    }
+
+    .ocr-engine-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+    }
+
+    /* Player manual roster list */
+    .player-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .player-row .label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      width: 75px;
+      font-family: var(--font-mono);
+    }
+
+    .player-input {
+      flex: 1;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.86rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .player-input:focus {
+      border-color: var(--primary);
+    }
+
+    .remove-btn {
+      width: 32px;
+      height: 32px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: var(--radius-sm);
+      color: var(--danger);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .remove-btn:hover {
+      background: rgba(239, 68, 68, 0.2);
+    }
+
+    .add-player-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.6rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-top: 0.4rem;
+      transition: all 0.2s;
+    }
+
+    .add-player-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+      border-color: var(--primary);
+    }
+
+    .player-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+
+    /* ── Video Source Ingestion ── */
+    .source-toggle {
+      display: flex;
+      gap: 0.65rem;
+      margin-bottom: 1rem;
+    }
+
+    .source-btn {
+      flex: 1;
+      padding: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .source-btn:hover {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+    }
+
+    .source-btn.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Drop Zone */
+    .upload-zone {
+      border: 2px dashed rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-lg);
+      padding: 2.75rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(22, 32, 44, 0.4);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
+      border-color: var(--primary);
+      background: rgba(16, 185, 129, 0.04);
+      transform: translateY(-1px);
+    }
+
+    .upload-zone i {
+      font-size: 2.2rem;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .upload-zone:hover i {
+      color: var(--primary);
+    }
+
+    .upload-zone p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+
+    .upload-zone .zone-sub {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    .file-name {
+      display: none;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary-dim);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-sm);
+      color: var(--primary);
+      font-size: 0.84rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+    }
+
+    /* URL Input Section */
+    .url-input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .url-input-wrapper i.url-icon {
+      position: absolute;
+      left: 1rem;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .url-input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem 0.85rem 2.8rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    .url-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+
+    .url-hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    /* Action Trigger Button */
+    .tactical-btn {
+      background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+      color: #042f1a;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.6rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      box-shadow: 0 4px 16px rgba(16, 185, 129, 0.25);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tactical-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
+      filter: brightness(1.05);
+    }
+
+    .tactical-btn:active:not(:disabled) {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .tactical-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .tactical-btn.btn-outline {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border-subtle);
+      box-shadow: none;
+    }
+
+    .tactical-btn.btn-outline:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .tactical-btn.btn-purple {
+      background: linear-gradient(135deg, var(--purple), #7c3aed);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.25);
+    }
+
+    .tactical-btn.btn-warning {
+      background: linear-gradient(135deg, var(--warning), #d97706);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(245, 158, 11, 0.25);
+    }
+
+    /* ── Progress Telemetry Section ── */
+    .progress-container {
+      margin-top: 1.25rem;
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: var(--bg-surface);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-bottom: 0.65rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #059669, #10b981);
+      width: 0%;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .progress-status {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+    }
+
+    /* ── Results HUD Section ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg-surface);
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .stat-card .label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-card .value {
+      font-size: 1.85rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      font-variant-numeric: tabular-nums;
+      color: var(--text-main);
+    }
+
+    .stat-card.success .value {
+      color: var(--primary);
+    }
+
+    .stat-card.fail .value {
+      color: var(--danger);
+    }
+
+    .stat-card.accuracy .value {
+      color: var(--warning);
+    }
+
+    /* Video Player Frame */
+    .video-wrapper {
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-top: 1.25rem;
+      position: relative;
+      aspect-ratio: 16/9;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: #000;
+    }
+
+    .speed-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.85rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .speed-btn {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .speed-btn.active {
+      background: var(--primary-dim);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Player Table */
+    .player-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.86rem;
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .player-table th {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.8rem 1rem;
+      text-align: left;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .player-table td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .player-table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .table-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-top: 1.5rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .table-title i {
+      color: var(--info);
+    }
+
+    .download-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    /* Manual Counting Form */
+    .manual-count-form {
+      animation: fadeIn 0.3s ease;
+    }
+
+    .manual-form-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.85rem;
+      margin-top: 1rem;
+    }
+
+    .manual-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .manual-form-group label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .manual-form-group input {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.7rem 0.85rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .manual-form-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .input-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .manual-player-section {
+      margin-top: 1.5rem;
+      padding: 1.25rem;
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .manual-player-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .manual-player-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .manual-player-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+
+    .manual-player-name-input {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.45rem 0.75rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      width: 60%;
+    }
+
+    .manual-player-name-input:focus {
+      border-color: var(--primary);
+    }
+
+    .manual-player-remove {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.4rem;
+      transition: color 0.2s;
+    }
+
+    .manual-player-remove:hover {
+      color: var(--danger);
+    }
+
+    .manual-player-fields {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+
+    .add-manual-player-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.65rem 1.1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      transition: all 0.2s;
+    }
+
+    .add-manual-player-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-main);
+    }
+
+    /* ── Edit Panel ── */
+    .edit-panel {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: var(--bg-surface);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius-md);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .edit-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .edit-panel-header h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--warning);
+    }
+
+    .edit-panel-close {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.4rem;
+    }
+
+    .edit-panel-close:hover {
+      color: var(--text-main);
+    }
+
+    .edit-panel-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .edit-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .edit-form-group label {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .edit-form-group input {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .edit-form-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .player-edit-section {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .player-edit-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 0.85rem;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .player-edit-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.85rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .player-edit-name {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .player-edit-fields {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.65rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+    }
+
+    .edit-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.55rem;
+      background: rgba(245, 158, 11, 0.15);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      color: var(--warning);
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .edit-result-btn {
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: var(--warning);
+      padding: 0.85rem 1.4rem;
+      border-radius: var(--radius-md);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .edit-result-btn:hover {
+      background: rgba(245, 158, 11, 0.22);
+      transform: translateY(-1px);
+    }
+
+    /* ── Utility & Animation ── */
+    .hidden {
+      display: none !important;
+    }
+
+    .invalid-field {
+      border-color: var(--danger) !important;
+      box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Toast System */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--primary);
+      padding: 0.9rem 1.25rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 280px;
+      font-size: 0.86rem;
+      animation: toastIn 0.3s ease;
+    }
+
+    .toast.error {
+      border-left-color: var(--danger);
+    }
+
+    .toast i {
+      color: var(--primary);
+    }
+
+    .toast.error i {
+      color: var(--danger);
+    }
+
+    @keyframes toastIn {
+      from { transform: translateX(110%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.75rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-base);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .manual-form-grid,
+      .manual-player-fields,
+      .edit-panel-grid,
+      .player-edit-fields {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 640px) {
+      main {
+        padding: 1rem;
+      }
+      header {
+        flex-direction: column;
+        gap: 0.75rem;
+        align-items: flex-start;
+      }
+      .header-right {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .type-toggle,
+      .analysis-mode-toggle {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="/" class="brand-link">
+      <div class="brand-badge"><i class="fas fa-futbol"></i></div>
+      <div class="brand-text">
+        <div class="brand-title">talento<span class="accent-id">ID</span></div>
+        <div class="brand-sub">Sports Performance Intelligence</div>
+      </div>
+    </a>
+    <div class="header-right">
+      <nav class="nav-links">
+        <a href="/" class="nav-link active"><i class="fas fa-chart-line"></i> Analysis</a>
+        <a href="/history" class="nav-link"><i class="fas fa-clock-rotate-left"></i> History</a>
+        <a href="/integrations" class="nav-link"><i class="fas fa-satellite-dish"></i> Wearables & Radar</a>
+      </nav>
+      <div class="system-status">
+        <div class="status-pulse"></div>
+        <span>Core API Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-hero">
+      <div class="hero-title-group">
+        <h2>Video Training Analytics</h2>
+        <p>Analisis biomekanika dan statistik latihan atletik dengan deteksi objek YOLOv8 serta verifikasi manual.</p>
+      </div>
+      <div class="session-badge">
+        <i class="fas fa-microchip"></i>
+        <span>ACCELERATED ENGINE</span>
+      </div>
+    </div>
+
+    <!-- Step 1: Configuration & Ingestion Card -->
+    <section id="upload-section" class="tactical-card">
+      <div class="card-section-header">
+        <div class="section-title">
+          <i class="fas fa-layer-group"></i>
+          Pilih Model Training
+          <span class="required-asterisk">*</span>
+        </div>
+        <div class="section-subtext">Tentukan modul latihan yang akan diuji</div>
+      </div>
+
+      <div class="type-toggle" id="model-toggle">
+        <button class="type-btn" data-type="passing" id="btn-type-passing">
+          <i class="fas fa-futbol"></i>
+          <span>Passing & Ball Distribution</span>
+        </button>
+        <button class="type-btn" data-type="heading" id="btn-type-heading">
+          <i class="fas fa-heading"></i>
+          <span>Aerial Heading Duel</span>
+        </button>
+      </div>
+
+      <!-- Analysis Mode Section -->
+      <div id="analysis-mode-section" class="analysis-mode-container hidden">
+        <div class="section-title">
+          <i class="fas fa-sliders"></i>
+          Pilih Metode Analisis
+        </div>
+        <div class="analysis-mode-toggle">
+          <button class="analysis-mode-btn auto-mode active" data-mode="auto" id="btn-mode-auto">
+            <i class="fas fa-robot"></i>
+            <span>Auto Detection (AI YOLOv8)</span>
+          </button>
+          <button class="analysis-mode-btn manual-mode" data-mode="manual" id="btn-mode-manual">
+            <i class="fas fa-hand-pointer"></i>
+            <span>Manual Admin Input</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="analysis-form-section" class="hidden" style="margin-top: 1.5rem;">
+        <!-- Auto-detected type badge -->
+        <div id="auto-type-badge" class="auto-type-badge hidden">
+          <i class="fas fa-bolt"></i>
+          <span>Model Aktif: <span id="auto-type-name" class="type-name">-</span></span>
+          <span class="type-desc"><i class="fas fa-brain" style="margin-right:4px"></i>Neural network terhubung</span>
+        </div>
+
+        <!-- Manual mode badge -->
+        <div id="manual-mode-badge" class="manual-mode-badge hidden">
+          <i class="fas fa-pen-to-square"></i>
+          <span class="badge-text">Mode Verifikasi Manual</span>
+          <span class="badge-desc">Input data hasil pengamatan pelatih langsung</span>
+        </div>
+
+        <!-- Player Identification Pipeline (Passing specific) -->
+        <div id="player-names-section" class="player-names-section hidden">
+          <div class="section-title" style="font-size:0.92rem;margin-bottom:0.75rem">
+            <i class="fas fa-id-card"></i> Identifikasi Pemain
+          </div>
+          <div class="detect-mode-toggle">
+            <button class="detect-mode-btn active" data-detect="auto" id="btn-detect-auto">
+              <i class="fas fa-camera"></i> Auto Jersey OCR
+            </button>
+            <button class="detect-mode-btn" data-detect="manual" id="btn-detect-manual">
+              <i class="fas fa-list-ol"></i> Manual Roster Urutan
+            </button>
+          </div>
+
+          <div id="auto-detect-section" class="auto-detect-info">
+            <p><i class="fas fa-tshirt"></i> Nomor punggung pemain akan <span class="highlight">dideteksi otomatis</span> dari frame video.</p>
+            <p style="margin-top:0.4rem;font-size:0.78rem"><i class="fas fa-circle-info"></i> Model OCR membaca nomor jersey (misal #7, #10) untuk menetapkan metrik performa masing-masing atlet.</p>
+            <div class="ocr-engine-select">
+              <label><i class="fas fa-gear"></i> Mesin OCR</label>
+              <select id="ocr-engine-dropdown" class="tactical-dropdown">
+                <option value="easyocr" selected>EasyOCR (Direkomendasikan: cepat, stabil)</option>
+                <option value="paddleocr">PaddleOCR (Akurasi tinggi, GPU dioptimasi)</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="manual-detect-section" class="hidden">
+            <div class="section-title" style="font-size:0.86rem;margin-bottom:0.6rem;margin-top:0.5rem">
+              <i class="fas fa-users"></i> Urutan Giliran Passing Atlet <span class="required-asterisk">*</span>
+            </div>
+            <div id="player-list">
+              <div class="player-row"><span class="label">Pemain 1</span><input type="text" placeholder="Nama pemain..." class="player-input"><button class="remove-btn" title="Hapus"><i class="fas fa-times"></i></button></div>
+              <div class="player-row"><span class="label">Pemain 2</span><input type="text" placeholder="Nama pemain..." class="player-input"><button class="remove-btn" title="Hapus"><i class="fas fa-times"></i></button></div>
+            </div>
+            <button class="add-player-btn" id="add-player-btn"><i class="fas fa-plus"></i> Tambah Atlet</button>
+            <p class="player-hint"><i class="fas fa-circle-info"></i> Urutan nama menentukan siklus passing (minimal 2 pemain).</p>
+          </div>
+        </div>
+
+        <!-- Video Source Selection -->
+        <div style="margin-top:1.5rem">
+          <div class="section-title" style="margin-bottom:0.75rem">
+            <i class="fas fa-video"></i> Sumber Rekaman Video <span class="required-asterisk">*</span>
+          </div>
+          <div class="source-toggle" id="source-toggle">
+            <button class="source-btn active" data-source="file" id="btn-source-file">
+              <i class="fas fa-file-arrow-up"></i> Upload File Lokal
+            </button>
+            <button class="source-btn" data-source="url" id="btn-source-url">
+              <i class="fas fa-globe"></i> Tautan URL Video
+            </button>
+          </div>
+
+          <div id="file-source-section">
+            <div class="upload-zone" id="drop-zone">
+              <i class="fas fa-cloud-arrow-up"></i>
+              <p>Seret rekaman video ke sini atau klik untuk memilih file</p>
+              <span class="zone-sub">Mendukung format MP4, AVI, MOV, MKV (hingga 500MB)</span>
+              <input type="file" id="file-input" accept=".mp4,.avi,.mov,.mkv" hidden>
+              <div class="file-name" id="file-name"><i class="fas fa-circle-check"></i><span></span></div>
+            </div>
+          </div>
+
+          <div id="url-source-section" class="url-input-section hidden">
+            <div class="url-input-wrapper">
+              <i class="fas fa-link url-icon"></i>
+              <input type="text" class="url-input" id="video-url-input" placeholder="https://domain.com/video-latihan.mp4 *">
+            </div>
+            <p class="url-hint"><i class="fas fa-circle-info"></i> Masukkan tautan direct video (.mp4, .avi, .mov). Untuk Google Drive gunakan format uc?export=download.</p>
+          </div>
+
+          <div style="margin-top:1.5rem;text-align:right" id="upload-btn-container">
+            <button class="tactical-btn" id="upload-btn" disabled>
+              <i class="fas fa-bolt"></i> Mulai Pemrosesan Video
+            </button>
+          </div>
+        </div>
+
+        <!-- Manual Counting Form (shown after video upload in manual mode) -->
+        <div id="manual-count-form-section" class="manual-count-form hidden">
+          <div class="section-title" style="margin-top:1.5rem">
+            <i class="fas fa-calculator"></i> Lembar Penilaian Manual (Pelatih)
+            <span style="font-size:0.75rem;color:var(--text-muted);font-weight:normal;margin-left:8px">(Field bertanda <span class="required-asterisk">*</span> wajib diisi)</span>
+          </div>
+
+          <div class="video-wrapper">
+            <video id="manual-preview-video" controls preload="metadata" playsinline>
+              <source src="" type="video/mp4">
+            </video>
+          </div>
+
+          <div class="speed-controls">
+            <span style="font-size:0.8rem;font-weight:700;color:var(--text-secondary)"><i class="fas fa-gauge"></i> Playback Speed:</span>
+            <button type="button" class="speed-btn active" data-speed="1.0" onclick="changePlaybackSpeed(1.0)">1.0x (Normal)</button>
+            <button type="button" class="speed-btn" data-speed="0.5" onclick="changePlaybackSpeed(0.5)">0.5x (Slow)</button>
+            <button type="button" class="speed-btn" data-speed="0.25" onclick="changePlaybackSpeed(0.25)">0.25x (Super Slow)</button>
+          </div>
+
+          <div class="manual-form-grid">
+            <div class="manual-form-group">
+              <label><i class="fas fa-futbol"></i> Total Repetisi <span class="required-asterisk">*</span></label>
+              <input type="number" id="manual-total" min="0" placeholder="0">
+            </div>
+            <div class="manual-form-group">
+              <label><i class="fas fa-check-circle" style="color:var(--primary)"></i> Berhasil <span class="required-asterisk">*</span></label>
+              <input type="number" id="manual-sukses" min="0" placeholder="0">
+            </div>
+            <div class="manual-form-group">
+              <label><i class="fas fa-times-circle" style="color:var(--danger)"></i> Gagal <span class="required-asterisk">*</span></label>
+              <input type="number" id="manual-gagal" min="0" placeholder="0">
+            </div>
+            <div class="manual-form-group">
+              <label><i class="fas fa-percent" style="color:var(--warning)"></i> Akurasi</label>
+              <input type="text" id="manual-akurasi" readonly placeholder="0%" value="0%">
+              <p class="input-hint">Dihitung otomatis</p>
+            </div>
+          </div>
+
+          <!-- Per-Player Section -->
+          <div class="manual-player-section">
+            <div class="manual-player-title">
+              <i class="fas fa-users"></i> Distribusi Statistik Per Atlet
+              <span style="font-weight:400;font-size:0.75rem;color:var(--text-muted)">(Opsional)</span>
+            </div>
+            <div id="manual-player-list"></div>
+            <button class="add-manual-player-btn" id="add-manual-player-btn">
+              <i class="fas fa-plus"></i> Tambah Catatan Atlet
+            </button>
+          </div>
+
+          <div style="margin-top:1.5rem;text-align:right">
+            <button class="tactical-btn btn-purple" id="submit-manual-btn" disabled>
+              <i class="fas fa-check"></i> Simpan Penilaian Pelatih
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /analysis-form-section -->
+    </section>
+
+    <!-- Step 2: Processing Progress Telemetry -->
+    <section id="progress-section" class="tactical-card hidden">
+      <div class="section-title">
+        <i class="fas fa-spinner fa-spin"></i> Memproses Analisis Video...
+      </div>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+        <div class="progress-status">
+          <span id="progress-text">Menganalisis pergerakan atlet...</span>
+          <span id="progress-percent">Memproses</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Step 3: Analysis Results Hub -->
+    <section id="results-section" class="tactical-card hidden">
+      <div class="card-section-header">
+        <div class="section-title">
+          <i class="fas fa-chart-pie"></i> Hasil Telemetri Analisis
+          <span id="edit-badge" class="edit-badge hidden"><i class="fas fa-pen"></i> Terverifikasi Diedit</span>
+        </div>
+      </div>
+
+      <div class="stats-grid" id="stats-grid"></div>
+      <div id="player-table-container"></div>
+
+      <div class="video-wrapper">
+        <video id="result-video" controls preload="metadata" playsinline>
+          <source src="" type="video/mp4">
+        </video>
+      </div>
+
+      <div class="download-actions">
+        <a id="download-btn" class="tactical-btn" download>
+          <i class="fas fa-download"></i> Unduh Video Beranotasi
+        </a>
+        <button class="edit-result-btn hidden" id="edit-result-btn">
+          <i class="fas fa-pen-to-square"></i> Koreksi Hasil
+        </button>
+        <button class="tactical-btn btn-outline" id="reset-btn">
+          <i class="fas fa-rotate-left"></i> Mulai Sesi Baru
+        </button>
+      </div>
+
+      <!-- Inline Edit Panel -->
+      <div class="edit-panel hidden" id="edit-panel">
+        <div class="edit-panel-header">
+          <h2><i class="fas fa-pen-to-square"></i> Koreksi Metrik Analisis</h2>
+          <button class="edit-panel-close" id="panel-close-btn"><i class="fas fa-chevron-up"></i></button>
+        </div>
+        <div class="edit-panel-grid">
+          <div class="edit-form-group">
+            <label><i class="fas fa-futbol"></i> Total Passing</label>
+            <input type="number" id="edit-total-passing" min="0" placeholder="0">
+          </div>
+          <div class="edit-form-group">
+            <label><i class="fas fa-check-circle" style="color:var(--primary)"></i> Passing Sukses</label>
+            <input type="number" id="edit-passing-sukses" min="0" placeholder="0">
+          </div>
+          <div class="edit-form-group">
+            <label><i class="fas fa-times-circle" style="color:var(--danger)"></i> Passing Gagal</label>
+            <input type="number" id="edit-passing-gagal" min="0" placeholder="0">
+          </div>
+          <div class="edit-form-group">
+            <label><i class="fas fa-percent" style="color:var(--warning)"></i> Akurasi</label>
+            <input type="text" id="edit-akurasi" readonly placeholder="0%">
+            <p class="input-hint">Kalkulasi rasio otomatis</p>
+          </div>
+        </div>
+
+        <div id="player-edit-section" class="player-edit-section hidden">
+          <div class="player-edit-title"><i class="fas fa-users"></i> Koreksi Angka Per Atlet</div>
+          <div id="player-edit-list">
+            <div class="player-edit-loading"><i class="fas fa-spinner fa-spin"></i> Memuat data...</div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="tactical-btn btn-outline" id="panel-cancel-btn"><i class="fas fa-times"></i> Batal</button>
+          <button class="tactical-btn btn-warning" id="modal-save-btn"><i class="fas fa-check"></i> Simpan Koreksi</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-container"></div>
+  <footer>
+    &copy; 2026 talentoID : Sports Talent Identification & Athlete Performance System
+  </footer>
+
+  <script>
+    let selectedFile = null, jobId = null, analysisType = null, detectionMode = 'auto', ocrEngine = 'easyocr', currentResultId = null, videoSource = 'file';
+    let analysisMode = 'auto'; // 'auto' (AI detection) or 'manual' (admin input)
+    const SUPPORTED_CATEGORIES = ['heading', 'passing'];
+    let currentPlayerResults = [];
+    let countedFootprints = [];
+    let selectedFootprintId = null, selectedCategory = null;
+    const $ = id => document.getElementById(id);
+
+    function changePlaybackSpeed(speed) {
+      const video = $('manual-preview-video');
+      if (video) {
+        video.playbackRate = speed;
+      }
+      document.querySelectorAll('.speed-controls .speed-btn').forEach(btn => {
+        if (parseFloat(btn.dataset.speed) === speed) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    }
+
+    // === MODEL TRAINING SELECTOR ===
+    document.querySelectorAll('#model-toggle .type-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#model-toggle .type-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        analysisType = btn.dataset.type;
+        selectedCategory = analysisType;
+        console.log('[DEBUG] Model selected:', analysisType);
+
+        $('analysis-mode-section').classList.remove('hidden');
+        applyModelSelection();
+      });
+    });
+
+    function applyModelSelection() {
+      if (!analysisType) return;
+
+      if (analysisMode === 'manual') {
+        $('auto-type-badge').classList.add('hidden');
+        $('manual-mode-badge').classList.remove('hidden');
+        playerNamesSection.classList.add('hidden');
+        $('analysis-form-section').classList.remove('hidden');
+        $('manual-count-form-section').classList.add('hidden');
+        $('upload-btn-container').classList.remove('hidden');
+        videoSource = 'file';
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        $('btn-source-file').classList.add('active');
+        fileSourceSection.classList.remove('hidden');
+        urlSourceSection.classList.add('hidden');
+        uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Unggah Video';
+        updateSourceToggleVisibility();
+        validateForm();
+      } else {
+        $('manual-mode-badge').classList.add('hidden');
+        const badge = $('auto-type-badge');
+        const typeName = $('auto-type-name');
+        if (badge && typeName) {
+          typeName.textContent = analysisType.charAt(0).toUpperCase() + analysisType.slice(1);
+          badge.classList.remove('hidden');
+        }
+        playerNamesSection.classList.toggle('hidden', analysisType !== 'passing');
+        $('analysis-form-section').classList.remove('hidden');
+        $('manual-count-form-section').classList.add('hidden');
+        $('upload-btn-container').classList.remove('hidden');
+        videoSource = 'file';
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        $('btn-source-file').classList.add('active');
+        fileSourceSection.classList.remove('hidden');
+        urlSourceSection.classList.add('hidden');
+        uploadBtn.innerHTML = '<i class="fas fa-bolt"></i> Mulai Pemrosesan Video';
+        updateSourceToggleVisibility();
+        validateForm();
+      }
+    }
+
+    function getAPI(type) {
+      const base = `/api/${type}`;
+      return {
+        upload: `${base}/upload`,
+        process: id => `${base}/process/${id}`,
+        results: id => `${base}/results/${id}`,
+        preview: id => `${base}/preview/${id}`,
+        download: id => `${base}/download/${id}`
+      };
+    }
+
+    const dropZone = $('drop-zone'), fileInput = $('file-input'), fileNameDisplay = $('file-name'), uploadBtn = $('upload-btn');
+    const uploadSection = $('upload-section'), progressSection = $('progress-section'), progressFill = $('progress-fill'), progressText = $('progress-text'), progressPercent = $('progress-percent');
+    const resultsSection = $('results-section'), resultVideo = $('result-video'), downloadBtn = $('download-btn'), resetBtn = $('reset-btn'), toastContainer = $('toast-container');
+    const playerNamesSection = $('player-names-section'), playerList = $('player-list'), addPlayerBtn = $('add-player-btn');
+    const autoDetectSection = $('auto-detect-section'), manualDetectSection = $('manual-detect-section');
+    const statsGrid = $('stats-grid'), playerTableContainer = $('player-table-container');
+    const ocrEngineDropdown = $('ocr-engine-dropdown');
+    const fileSourceSection = $('file-source-section'), urlSourceSection = $('url-source-section'), videoUrlInput = $('video-url-input');
+
+    // Source Toggle
+    document.querySelectorAll('.source-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        videoSource = btn.dataset.source;
+        fileSourceSection.classList.toggle('hidden', videoSource !== 'file');
+        urlSourceSection.classList.toggle('hidden', videoSource !== 'url');
+        if (analysisMode === 'manual') {
+          uploadBtn.innerHTML = videoSource === 'url' ? '<i class="fas fa-globe"></i> Hubungkan Video' : '<i class="fas fa-upload"></i> Unggah Video';
+        } else {
+          uploadBtn.innerHTML = videoSource === 'url' ? '<i class="fas fa-globe"></i> Proses dari URL' : '<i class="fas fa-bolt"></i> Mulai Pemrosesan Video';
+        }
+        validateForm();
+      });
+    });
+
+    videoUrlInput.addEventListener('input', validateForm);
+
+    function updateSourceToggleVisibility() {
+      const sourceToggle = $('source-toggle');
+      if (analysisMode === 'manual' || SUPPORTED_CATEGORIES.some(s => analysisType === s)) {
+        sourceToggle.style.display = 'flex';
+      } else {
+        sourceToggle.style.display = 'none';
+        videoSource = 'file';
+        document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+        $('btn-source-file').classList.add('active');
+        fileSourceSection.classList.remove('hidden');
+        urlSourceSection.classList.add('hidden');
+        uploadBtn.innerHTML = '<i class="fas fa-bolt"></i> Mulai Pemrosesan Video';
+      }
+    }
+
+    const showToast = (msg, type = 'success') => {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${msg}`;
+      toastContainer.appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    };
+
+    // Detection Mode Toggle
+    document.querySelectorAll('.detect-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.detect-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        detectionMode = btn.dataset.detect;
+        autoDetectSection.classList.toggle('hidden', detectionMode !== 'auto');
+        manualDetectSection.classList.toggle('hidden', detectionMode !== 'manual');
+        validateForm();
+      });
+    });
+
+    ocrEngineDropdown.addEventListener('change', (e) => {
+      ocrEngine = e.target.value;
+      console.log('[DEBUG] OCR engine:', ocrEngine);
+    });
+
+    function renumberPlayers() {
+      playerList.querySelectorAll('.player-row').forEach((row, i) => {
+        row.querySelector('.label').textContent = `Atlet ${i + 1}`;
+        row.querySelector('.remove-btn').style.visibility = playerList.children.length <= 2 ? 'hidden' : 'visible';
+      });
+    }
+
+    addPlayerBtn.addEventListener('click', () => {
+      const row = document.createElement('div');
+      row.className = 'player-row';
+      row.innerHTML = `<span class="label"></span><input type="text" placeholder="Nama atlet..." class="player-input"><button class="remove-btn" title="Hapus"><i class="fas fa-times"></i></button>`;
+      row.querySelector('.remove-btn').addEventListener('click', () => { row.remove(); renumberPlayers(); validateForm(); });
+      row.querySelector('input').addEventListener('input', validateForm);
+      playerList.appendChild(row);
+      renumberPlayers();
+      validateForm();
+    });
+
+    playerList.querySelectorAll('.remove-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (playerList.children.length > 2) {
+          btn.closest('.player-row').remove();
+          renumberPlayers();
+          validateForm();
+        }
+      });
+    });
+
+    playerList.querySelectorAll('.player-input').forEach(inp => inp.addEventListener('input', validateForm));
+    renumberPlayers();
+    updateSourceToggleVisibility();
+
+    function getPlayerNames() {
+      return [...playerList.querySelectorAll('.player-input')].map(i => i.value.trim()).filter(v => v.length > 0);
+    }
+
+    function validateForm() {
+      let hasError = false;
+      let videoValid = false;
+
+      if (videoSource === 'url') {
+        const url = videoUrlInput.value.trim();
+        videoValid = url.length > 0 && (url.startsWith('http://') || url.startsWith('https://'));
+        if (url.length > 0 && !videoValid) {
+          videoUrlInput.classList.add('invalid-field');
+        } else {
+          videoUrlInput.classList.remove('invalid-field');
+        }
+      } else {
+        videoValid = !!selectedFile;
+      }
+
+      if (!videoValid) hasError = true;
+
+      if (analysisMode === 'auto' && analysisType === 'passing' && detectionMode === 'manual') {
+        const inputs = [...playerList.querySelectorAll('.player-input')];
+        if (inputs.length < 2) {
+          hasError = true;
+        } else {
+          inputs.forEach(inp => {
+            const val = inp.value.trim();
+            if (val === '') {
+              inp.classList.add('invalid-field');
+              hasError = true;
+            } else {
+              inp.classList.remove('invalid-field');
+            }
+          });
+        }
+      }
+
+      uploadBtn.disabled = hasError;
+    }
+
+    // Upload Drag-and-drop
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => {
+      if (e.target.files.length) handleFile(e.target.files[0]);
+    });
+
+    const handleFile = file => {
+      if (!file.type.startsWith('video/')) {
+        showToast('Format video tidak didukung', 'error');
+        return;
+      }
+      selectedFile = file;
+      fileNameDisplay.style.display = 'flex';
+      fileNameDisplay.querySelector('span').textContent = file.name;
+      validateForm();
+    };
+
+    // Upload & Process
+    uploadBtn.addEventListener('click', async () => {
+      if (videoSource === 'file' && !selectedFile) return;
+      if (videoSource === 'url' && !videoUrlInput.value.trim()) return;
+
+      if (analysisMode === 'manual') {
+        const MANUAL_API = '/api/manual-count';
+        uploadBtn.disabled = true;
+
+        try {
+          let upData;
+          if (videoSource === 'url') {
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunduh...';
+            const videoUrl = videoUrlInput.value.trim();
+            const upRes = await fetch(`${MANUAL_API}/upload-url`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ video_url: videoUrl })
+            });
+            upData = await upRes.json();
+            if (!upRes.ok) throw new Error(upData.error || 'Download gagal');
+            jobId = upData.job_id;
+            showToast(upData.message || 'Video berhasil diunduh');
+          } else {
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunggah...';
+            const fd = new FormData();
+            fd.append('video', selectedFile);
+            const upRes = await fetch(`${MANUAL_API}/upload`, { method: 'POST', body: fd });
+            upData = await upRes.json();
+            if (!upRes.ok) throw new Error(upData.error || 'Upload gagal');
+            jobId = upData.job_id;
+            showToast(`Video terunggah: ${selectedFile.name}`);
+          }
+
+          $('upload-btn-container').classList.add('hidden');
+          $('manual-count-form-section').classList.remove('hidden');
+
+          const manualVideo = $('manual-preview-video');
+          if (manualVideo && jobId) {
+            const previewUrl = `/api/manual-count/preview/${jobId}?t=${Date.now()}`;
+            const src = manualVideo.querySelector('source');
+            src.src = previewUrl;
+            src.type = 'video/mp4';
+            manualVideo.load();
+            changePlaybackSpeed(1.0);
+            manualVideo.play().catch(() => { });
+          }
+
+          $('manual-total').value = '';
+          $('manual-sukses').value = '';
+          $('manual-gagal').value = '';
+          $('manual-akurasi').value = '';
+          $('manual-player-list').innerHTML = '';
+          validateManualForm();
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Unggah Video';
+
+        } catch (e) {
+          console.error('[DEBUG] Manual upload error:', e);
+          showToast(e.message, 'error');
+          uploadBtn.disabled = false;
+          uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Unggah Video';
+        }
+        return;
+      }
+
+      if (analysisType === 'passing' && detectionMode === 'manual' && getPlayerNames().length < 2) {
+        showToast('Minimal 2 nama atlet harus diisi', 'error');
+        return;
+      }
+
+      const API = getAPI(analysisType);
+      uploadBtn.disabled = true;
+
+      try {
+        let upData;
+        if (videoSource === 'url') {
+          uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunduh...';
+          const videoUrl = videoUrlInput.value.trim();
+          const upRes = await fetch(`${API.upload}-url`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ video_url: videoUrl })
+          });
+          upData = await upRes.json();
+          if (!upRes.ok) throw new Error(upData.error || 'Download gagal');
+          jobId = upData.job_id;
+          showToast(upData.message || 'Video terunduh');
+        } else {
+          uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengunggah...';
+          const fd = new FormData();
+          fd.append('video', selectedFile);
+          const upRes = await fetch(API.upload, { method: 'POST', body: fd });
+          upData = await upRes.json();
+          if (!upRes.ok) throw new Error(upData.error || 'Upload gagal');
+          jobId = upData.job_id;
+          showToast(`Video terunggah: ${selectedFile.name}`);
+        }
+
+        uploadSection.classList.add('hidden');
+        progressSection.classList.remove('hidden');
+        progressFill.style.width = '50%';
+        progressText.textContent = 'Menganalisis pergerakan video... (proses komputasi visi berjalan)';
+
+        const processBody = {};
+        if (analysisType === 'passing') {
+          processBody.detection_mode = detectionMode;
+          if (detectionMode === 'auto') processBody.ocr_engine = ocrEngine;
+          if (detectionMode === 'manual') processBody.player_names = getPlayerNames();
+        }
+        if (selectedFootprintId) processBody.footprint_id = selectedFootprintId;
+
+        const procRes = await fetch(API.process(jobId), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(processBody)
+        });
+        const procData = await procRes.json();
+
+        if (procRes.status === 409) {
+          showToast(procData.error || 'Sesi ini sudah pernah dianalisis.', 'error');
+          try {
+            const cr = await fetch('/api/footprint/counted');
+            if (cr.ok) { const cj = await cr.json(); countedFootprints = cj.counted || []; }
+          } catch (ce) { }
+          resetUI();
+          return;
+        }
+        if (!procRes.ok) throw new Error(procData.error || `Server error ${procRes.status}`);
+        if (procData.status === 'failed') throw new Error(procData.error || 'Pemrosesan gagal');
+
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Analisis Selesai!';
+        if (procData.result_id) currentResultId = procData.result_id;
+        setTimeout(() => showResults(jobId, procData), 500);
+
+      } catch (e) {
+        console.error('[DEBUG] Error:', e);
+        showToast(e.message, 'error');
+        resetUI();
+      }
+    });
+
+    function showResults(id, data) {
+      progressSection.classList.add('hidden');
+      resultsSection.classList.remove('hidden');
+      const API = getAPI(analysisType);
+
+      const previewUrl = `${API.preview(id)}?t=${Date.now()}`;
+      const src = resultVideo.querySelector('source');
+      src.src = previewUrl;
+      src.type = 'video/mp4';
+      resultVideo.load();
+      downloadBtn.href = API.download(id);
+      downloadBtn.download = `${analysisType}_${id}.mp4`;
+      resultVideo.onloadeddata = () => showToast('Video hasil siap diputar');
+      resultVideo.onerror = () => showToast('Gagal memuat preview video. Gunakan tombol unduh.', 'error');
+
+      const editBtn = $('edit-result-btn');
+      if (analysisType === 'passing' && currentResultId) {
+        editBtn.classList.remove('hidden');
+      } else {
+        editBtn.classList.add('hidden');
+      }
+
+      const stats = data.stats;
+      if (stats) {
+        if (analysisType === 'passing') renderPassingStats(stats);
+        else renderHeadingStats(stats);
+      }
+      resultVideo.play().catch(() => { });
+    }
+
+    function renderHeadingStats(s) {
+      statsGrid.innerHTML = `
+        <div class="stat-card"><div class="label">Total Heading</div><div class="value">${s.total_headings || 0}</div></div>
+        <div class="stat-card success"><div class="label">Sukses</div><div class="value">${s.successful_headings || 0}</div></div>
+        <div class="stat-card fail"><div class="label">Gagal</div><div class="value">${s.failed_headings || 0}</div></div>
+        <div class="stat-card accuracy"><div class="label">Akurasi</div><div class="value">${s.accuracy_pct || 0}%</div></div>`;
+      playerTableContainer.innerHTML = '';
+    }
+
+    function renderPassingStats(s) {
+      statsGrid.innerHTML = `
+        <div class="stat-card"><div class="label">Total Passing</div><div class="value">${s.total_passes || 0}</div></div>
+        <div class="stat-card success"><div class="label">Sukses</div><div class="value">${s.successful_passes || 0}</div></div>
+        <div class="stat-card fail"><div class="label">Gagal</div><div class="value">${s.failed_passes || 0}</div></div>
+        <div class="stat-card accuracy"><div class="label">Akurasi</div><div class="value">${s.accuracy_pct || 0}%</div></div>`;
+      if (s.per_player && Object.keys(s.per_player).length > 0) {
+        let rows = '';
+        for (const [name, ps] of Object.entries(s.per_player)) {
+          rows += `<tr><td style="font-weight:700">${name}</td><td>${ps.total}</td><td style="color:var(--primary)">${ps.success}</td><td style="color:var(--danger)">${ps.failed}</td><td style="color:var(--warning)">${ps.accuracy_pct}%</td></tr>`;
+        }
+        playerTableContainer.innerHTML = `<div class="table-title"><i class="fas fa-users-viewfinder"></i> Statistik Distribusi Per Atlet</div>
+          <table class="player-table"><thead><tr><th>Nama Atlet</th><th>Total Passing</th><th>Sukses</th><th>Gagal</th><th>Akurasi</th></tr></thead><tbody>${rows}</tbody></table>`;
+      } else {
+        playerTableContainer.innerHTML = '';
+      }
+    }
+
+    const resetUI = () => {
+      uploadSection.classList.remove('hidden');
+      progressSection.classList.add('hidden');
+      resultsSection.classList.add('hidden');
+      uploadBtn.disabled = false;
+      uploadBtn.innerHTML = '<i class="fas fa-bolt"></i> Mulai Pemrosesan Video';
+      fileNameDisplay.style.display = 'none';
+      fileInput.value = '';
+      selectedFile = null;
+      jobId = null;
+      currentResultId = null;
+      currentPlayerResults = [];
+      resultVideo.pause();
+      resultVideo.src = '';
+      statsGrid.innerHTML = '';
+      playerTableContainer.innerHTML = '';
+
+      const manualVideo = $('manual-preview-video');
+      if (manualVideo) {
+        manualVideo.pause();
+        manualVideo.src = '';
+      }
+      changePlaybackSpeed(1.0);
+
+      detectionMode = 'auto';
+      ocrEngine = 'easyocr';
+      document.querySelectorAll('.detect-mode-btn').forEach(b => b.classList.remove('active'));
+      $('btn-detect-auto').classList.add('active');
+      autoDetectSection.classList.remove('hidden');
+      manualDetectSection.classList.add('hidden');
+      ocrEngineDropdown.value = 'easyocr';
+
+      videoSource = 'file';
+      document.querySelectorAll('.source-btn').forEach(b => b.classList.remove('active'));
+      $('btn-source-file').classList.add('active');
+      fileSourceSection.classList.remove('hidden');
+      urlSourceSection.classList.add('hidden');
+      videoUrlInput.value = '';
+      updateSourceToggleVisibility();
+      $('edit-result-btn').classList.add('hidden');
+      $('edit-badge').classList.add('hidden');
+
+      analysisType = null;
+      document.querySelectorAll('#model-toggle .type-btn').forEach(b => b.classList.remove('active'));
+      $('analysis-form-section').classList.add('hidden');
+      $('auto-type-badge').classList.add('hidden');
+      $('manual-mode-badge').classList.add('hidden');
+      $('manual-count-form-section').classList.add('hidden');
+      $('upload-btn-container').classList.remove('hidden');
+      $('analysis-mode-section').classList.add('hidden');
+      selectedFootprintId = null;
+      selectedCategory = null;
+
+      analysisMode = 'auto';
+      document.querySelectorAll('.analysis-mode-btn').forEach(b => b.classList.remove('active'));
+      $('btn-mode-auto').classList.add('active');
+      validateForm();
+    };
+
+    resetBtn.addEventListener('click', resetUI);
+
+    // === EDIT PANEL LOGIC ===
+    const editPanel = $('edit-panel');
+    const editTotalPassing = $('edit-total-passing');
+    const editPassingSukses = $('edit-passing-sukses');
+    const editPassingGagal = $('edit-passing-gagal');
+    const editAkurasi = $('edit-akurasi');
+    const editResultBtn = $('edit-result-btn');
+    const panelCloseBtn = $('panel-close-btn');
+    const panelCancelBtn = $('panel-cancel-btn');
+    const modalSaveBtn = $('modal-save-btn');
+
+    function calcAccuracy() {
+      const total = parseInt(editTotalPassing.value) || 0;
+      const sukses = parseInt(editPassingSukses.value) || 0;
+      editAkurasi.value = total > 0 ? (sukses / total * 100).toFixed(2) + '%' : '0%';
+    }
+
+    editTotalPassing.addEventListener('input', calcAccuracy);
+    editPassingSukses.addEventListener('input', calcAccuracy);
+    editPassingGagal.addEventListener('input', calcAccuracy);
+
+    async function openEditPanel() {
+      if (!currentResultId) { showToast('Tidak ada hasil untuk diedit', 'error'); return; }
+      const statCards = statsGrid.querySelectorAll('.stat-card .value');
+      if (statCards.length >= 3) {
+        editTotalPassing.value = parseInt(statCards[0].textContent) || 0;
+        editPassingSukses.value = parseInt(statCards[1].textContent) || 0;
+        editPassingGagal.value = parseInt(statCards[2].textContent) || 0;
+      }
+      calcAccuracy();
+      editPanel.classList.remove('hidden');
+
+      const playerEditSection = $('player-edit-section');
+      const playerEditList = $('player-edit-list');
+      playerEditSection.classList.remove('hidden');
+      playerEditList.innerHTML = '<div class="player-edit-loading"><i class="fas fa-spinner fa-spin"></i> Memuat data pemain...</div>';
+
+      try {
+        const res = await fetch(`/api/player-result/by-total/${currentResultId}`);
+        const players = await res.json();
+        currentPlayerResults = players;
+        renderPlayerEditRows(players);
+      } catch (e) {
+        console.error('[DEBUG] Fetch player results error:', e);
+        playerEditList.innerHTML = '<div class="player-edit-empty"><i class="fas fa-circle-info"></i> Gagal memuat data atlet</div>';
+      }
+      setTimeout(() => editPanel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+    }
+
+    function renderPlayerEditRows(players) {
+      const playerEditList = $('player-edit-list');
+      if (!players || players.length === 0) {
+        playerEditList.innerHTML = '<div class="player-edit-empty"><i class="fas fa-circle-info"></i> Tidak ada data per pemain</div>';
+        return;
+      }
+      let html = '';
+      players.forEach(p => {
+        html += `
+        <div class="player-edit-card" data-player-id="${p.id}" data-player-name="${p.player}">
+          <div class="player-edit-name"><i class="fas fa-user-check"></i> ${p.player}</div>
+          <div class="player-edit-fields">
+            <div class="edit-form-group">
+              <label><i class="fas fa-futbol"></i> Total</label>
+              <input type="number" class="pedit-total" min="0" value="${p.total_passing}" oninput="calcPlayerAccuracy(this)">
+            </div>
+            <div class="edit-form-group">
+              <label><i class="fas fa-check-circle" style="color:var(--primary)"></i> Sukses</label>
+              <input type="number" class="pedit-sukses" min="0" value="${p.passing_sukses}" oninput="calcPlayerAccuracy(this)">
+            </div>
+            <div class="edit-form-group">
+              <label><i class="fas fa-times-circle" style="color:var(--danger)"></i> Gagal</label>
+              <input type="number" class="pedit-gagal" min="0" value="${p.passing_gagal}" oninput="calcPlayerAccuracy(this)">
+            </div>
+            <div class="edit-form-group">
+              <label><i class="fas fa-percent" style="color:var(--warning)"></i> Akurasi</label>
+              <input type="text" class="pedit-akurasi" readonly value="${p.akurasi_passing || '0%'}">
+            </div>
+          </div>
+        </div>`;
+      });
+      playerEditList.innerHTML = html;
+    }
+
+    function calcPlayerAccuracy(input) {
+      const card = input.closest('.player-edit-card');
+      const total = parseInt(card.querySelector('.pedit-total').value) || 0;
+      const sukses = parseInt(card.querySelector('.pedit-sukses').value) || 0;
+      const akurasiInput = card.querySelector('.pedit-akurasi');
+      akurasiInput.value = total > 0 ? (sukses / total * 100).toFixed(2) + '%' : '0%';
+    }
+
+    function closeEditPanel() {
+      editPanel.classList.add('hidden');
+      $('player-edit-section').classList.add('hidden');
+    }
+
+    editResultBtn.addEventListener('click', openEditPanel);
+    panelCloseBtn.addEventListener('click', closeEditPanel);
+    panelCancelBtn.addEventListener('click', closeEditPanel);
+
+    modalSaveBtn.addEventListener('click', async () => {
+      const total = parseInt(editTotalPassing.value);
+      const sukses = parseInt(editPassingSukses.value);
+      const gagal = parseInt(editPassingGagal.value);
+
+      if (isNaN(total) || isNaN(sukses) || isNaN(gagal)) {
+        showToast('Semua field harus diisi dengan angka', 'error'); return;
+      }
+      if (total < 0 || sukses < 0 || gagal < 0) {
+        showToast('Nilai tidak boleh bernilai negatif', 'error'); return;
+      }
+
+      modalSaveBtn.disabled = true;
+      modalSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+      try {
+        const res = await fetch(`/api/total-result/${currentResultId}/edit`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ total_passing: total, passing_sukses: sukses, passing_gagal: gagal })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
+
+        currentResultId = data.new_result.id;
+
+        const playerCards = document.querySelectorAll('.player-edit-card');
+        let savedPlayers = [];
+        if (playerCards.length > 0) {
+          const playersPayload = [];
+          playerCards.forEach(card => {
+            playersPayload.push({
+              player: card.dataset.playerName,
+              total_passing: parseInt(card.querySelector('.pedit-total').value) || 0,
+              passing_sukses: parseInt(card.querySelector('.pedit-sukses').value) || 0,
+              passing_gagal: parseInt(card.querySelector('.pedit-gagal').value) || 0,
+              parent_id: card.dataset.playerId
+            });
+          });
+          const pRes = await fetch('/api/player-result/batch-save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ total_result_id: currentResultId, players: playersPayload })
+          });
+          const pData = await pRes.json();
+          if (pRes.ok) {
+            savedPlayers = pData.results || [];
+            currentPlayerResults = savedPlayers;
+          }
+        }
+
+        const perPlayer = {};
+        savedPlayers.forEach(p => {
+          perPlayer[p.player] = {
+            total: p.total_passing,
+            success: p.passing_sukses,
+            failed: p.passing_gagal,
+            accuracy_pct: parseFloat(p.akurasi_passing) || 0
+          };
+        });
+        const newStats = {
+          total_passes: data.new_result.total_passing,
+          successful_passes: data.new_result.passing_sukses,
+          failed_passes: data.new_result.passing_gagal,
+          accuracy_pct: parseFloat(data.new_result.akurasi_passing),
+          per_player: perPlayer
+        };
+        renderPassingStats(newStats);
+
+        $('edit-badge').classList.remove('hidden');
+        closeEditPanel();
+        showToast('Hasil analisis berhasil diperbarui!');
+      } catch (e) {
+        showToast(e.message, 'error');
+      } finally {
+        modalSaveBtn.disabled = false;
+        modalSaveBtn.innerHTML = '<i class="fas fa-check"></i> Simpan Koreksi';
+      }
+    });
+
+    // === ANALYSIS MODE TOGGLE ===
+    document.querySelectorAll('.analysis-mode-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.analysis-mode-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        analysisMode = btn.dataset.mode;
+        console.log('[DEBUG] Analysis mode:', analysisMode);
+
+        $('manual-count-form-section').classList.add('hidden');
+        $('upload-btn-container').classList.remove('hidden');
+        $('auto-type-badge').classList.add('hidden');
+        $('manual-mode-badge').classList.add('hidden');
+
+        applyModelSelection();
+      });
+    });
+
+    // === MANUAL COUNTING FORM LOGIC ===
+    const manualTotal = $('manual-total');
+    const manualSukses = $('manual-sukses');
+    const manualGagal = $('manual-gagal');
+    const manualAkurasi = $('manual-akurasi');
+    const submitManualBtn = $('submit-manual-btn');
+    const addManualPlayerBtn = $('add-manual-player-btn');
+    const manualPlayerList = $('manual-player-list');
+
+    function calcManualAccuracy() {
+      const total = parseInt(manualTotal.value) || 0;
+      const sukses = parseInt(manualSukses.value) || 0;
+      manualAkurasi.value = total > 0 ? (sukses / total * 100).toFixed(2) + '%' : '0%';
+      validateManualForm();
+    }
+    manualTotal.addEventListener('input', calcManualAccuracy);
+    manualSukses.addEventListener('input', calcManualAccuracy);
+    manualGagal.addEventListener('input', calcManualAccuracy);
+
+    function validateManualForm() {
+      let hasError = false;
+
+      const totalVal = manualTotal.value.trim();
+      const suksesVal = manualSukses.value.trim();
+      const gagalVal = manualGagal.value.trim();
+
+      const total = parseInt(totalVal);
+      const sukses = parseInt(suksesVal);
+      const gagal = parseInt(gagalVal);
+
+      if (totalVal === '' || isNaN(total) || total < 0) {
+        manualTotal.classList.add('invalid-field');
+        hasError = true;
+      } else {
+        manualTotal.classList.remove('invalid-field');
+      }
+
+      if (suksesVal === '' || isNaN(sukses) || sukses < 0) {
+        manualSukses.classList.add('invalid-field');
+        hasError = true;
+      } else {
+        manualSukses.classList.remove('invalid-field');
+      }
+
+      if (gagalVal === '' || isNaN(gagal) || gagal < 0) {
+        manualGagal.classList.add('invalid-field');
+        hasError = true;
+      } else {
+        manualGagal.classList.remove('invalid-field');
+      }
+
+      const playerCards = manualPlayerList.querySelectorAll('.manual-player-card');
+      playerCards.forEach(card => {
+        const nameInput = card.querySelector('[data-field="name"]');
+        const totalInput = card.querySelector('[data-field="total"]');
+        const suksesInput = card.querySelector('[data-field="sukses"]');
+        const gagalInput = card.querySelector('[data-field="gagal"]');
+
+        const pName = nameInput.value.trim();
+        const pTotalVal = totalInput.value.trim();
+        const pSuksesVal = suksesInput.value.trim();
+        const pGagalVal = gagalInput.value.trim();
+
+        if (pName === '') {
+          nameInput.classList.add('invalid-field');
+          hasError = true;
+        } else {
+          nameInput.classList.remove('invalid-field');
+        }
+
+        const pTotal = parseInt(pTotalVal);
+        if (pTotalVal === '' || isNaN(pTotal) || pTotal < 0) {
+          totalInput.classList.add('invalid-field');
+          hasError = true;
+        } else {
+          totalInput.classList.remove('invalid-field');
+        }
+
+        const pSukses = parseInt(pSuksesVal);
+        if (pSuksesVal === '' || isNaN(pSukses) || pSukses < 0) {
+          suksesInput.classList.add('invalid-field');
+          hasError = true;
+        } else {
+          suksesInput.classList.remove('invalid-field');
+        }
+
+        const pGagal = parseInt(pGagalVal);
+        if (pGagalVal === '' || isNaN(pGagal) || pGagal < 0) {
+          gagalInput.classList.add('invalid-field');
+          hasError = true;
+        } else {
+          gagalInput.classList.remove('invalid-field');
+        }
+      });
+
+      submitManualBtn.disabled = hasError;
+    }
+
+    let manualPlayerCounter = 0;
+
+    function addManualPlayerCard() {
+      manualPlayerCounter++;
+      const card = document.createElement('div');
+      card.className = 'manual-player-card';
+      card.dataset.idx = manualPlayerCounter;
+      card.innerHTML = `
+        <div class="manual-player-header">
+          <input type="text" class="manual-player-name-input" placeholder="Nama atlet... *" data-field="name" oninput="validateManualForm()">
+          <button class="manual-player-remove" title="Hapus atlet" onclick="removeManualPlayer(this)"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="manual-player-fields">
+          <div class="manual-form-group">
+            <label><i class="fas fa-futbol"></i> Total *</label>
+            <input type="number" min="0" placeholder="0" data-field="total" oninput="calcManualPlayerAccuracy(this); validateManualForm()">
+          </div>
+          <div class="manual-form-group">
+            <label><i class="fas fa-check-circle" style="color:var(--primary)"></i> Sukses *</label>
+            <input type="number" min="0" placeholder="0" data-field="sukses" oninput="calcManualPlayerAccuracy(this); validateManualForm()">
+          </div>
+          <div class="manual-form-group">
+            <label><i class="fas fa-times-circle" style="color:var(--danger)"></i> Gagal *</label>
+            <input type="number" min="0" placeholder="0" data-field="gagal" oninput="calcManualPlayerAccuracy(this); validateManualForm()">
+          </div>
+          <div class="manual-form-group">
+            <label><i class="fas fa-percent" style="color:var(--warning)"></i> Akurasi</label>
+            <input type="text" readonly placeholder="0%" data-field="akurasi">
+          </div>
+        </div>`;
+      manualPlayerList.appendChild(card);
+      card.querySelector('.manual-player-name-input').focus();
+      validateManualForm();
+    }
+
+    function removeManualPlayer(btn) {
+      btn.closest('.manual-player-card').remove();
+      validateManualForm();
+    }
+
+    function calcManualPlayerAccuracy(input) {
+      const card = input.closest('.manual-player-card');
+      const total = parseInt(card.querySelector('[data-field="total"]').value) || 0;
+      const sukses = parseInt(card.querySelector('[data-field="sukses"]').value) || 0;
+      card.querySelector('[data-field="akurasi"]').value = total > 0 ? (sukses / total * 100).toFixed(2) + '%' : '0%';
+    }
+
+    addManualPlayerBtn.addEventListener('click', addManualPlayerCard);
+
+    submitManualBtn.addEventListener('click', async () => {
+      const total = parseInt(manualTotal.value);
+      const sukses = parseInt(manualSukses.value);
+      const gagal = parseInt(manualGagal.value);
+
+      if (isNaN(total) || isNaN(sukses) || isNaN(gagal)) {
+        showToast('Semua field harus diisi dengan angka', 'error'); return;
+      }
+      if (total < 0 || sukses < 0 || gagal < 0) {
+        showToast('Nilai tidak boleh bernilai negatif', 'error'); return;
+      }
+
+      const playerCards = manualPlayerList.querySelectorAll('.manual-player-card');
+      const playerResults = [];
+      playerCards.forEach(card => {
+        const name = card.querySelector('[data-field="name"]').value.trim();
+        if (!name) return;
+        playerResults.push({
+          player: name,
+          total_passing: parseInt(card.querySelector('[data-field="total"]').value) || 0,
+          passing_sukses: parseInt(card.querySelector('[data-field="sukses"]').value) || 0,
+          passing_gagal: parseInt(card.querySelector('[data-field="gagal"]').value) || 0,
+        });
+      });
+
+      submitManualBtn.disabled = true;
+      submitManualBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
+
+      try {
+        const res = await fetch('/api/manual-count/submit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            job_id: jobId,
+            footprint_id: selectedFootprintId,
+            total_passing: total,
+            passing_sukses: sukses,
+            passing_gagal: gagal,
+            player_results: playerResults,
+          })
+        });
+        const data = await res.json();
+
+        if (res.status === 409) {
+          showToast(data.error || 'Training category ini sudah pernah dianalisis.', 'error');
+          try {
+            const cr = await fetch('/api/footprint/counted');
+            if (cr.ok) { const cj = await cr.json(); countedFootprints = cj.counted || []; }
+          } catch (ce) { }
+          resetUI();
+          return;
+        }
+        if (!res.ok) throw new Error(data.error || 'Gagal menyimpan');
+
+        currentResultId = data.result_id;
+        showToast('Hasil perhitungan manual tersimpan!');
+
+        uploadSection.classList.add('hidden');
+        resultsSection.classList.remove('hidden');
+
+        const manualVideo = $('manual-preview-video');
+        if (manualVideo) manualVideo.pause();
+
+        const accPct = total > 0 ? (sukses / total * 100).toFixed(2) : '0';
+        statsGrid.innerHTML = `
+          <div class="stat-card"><div class="label">Total</div><div class="value">${total}</div></div>
+          <div class="stat-card success"><div class="label">Sukses</div><div class="value">${sukses}</div></div>
+          <div class="stat-card fail"><div class="label">Gagal</div><div class="value">${gagal}</div></div>
+          <div class="stat-card accuracy"><div class="label">Akurasi</div><div class="value">${accPct}%</div></div>`;
+
+        if (playerResults.length > 0) {
+          let rows = '';
+          playerResults.forEach(p => {
+            const pAcc = p.total_passing > 0 ? (p.passing_sukses / p.total_passing * 100).toFixed(2) : '0';
+            rows += `<tr><td style="font-weight:700">${p.player}</td><td>${p.total_passing}</td><td style="color:var(--primary)">${p.passing_sukses}</td><td style="color:var(--danger)">${p.passing_gagal}</td><td style="color:var(--warning)">${pAcc}%</td></tr>`;
+          });
+          playerTableContainer.innerHTML = `<div class="table-title"><i class="fas fa-users-viewfinder"></i> Statistik Distribusi Per Atlet</div>
+            <table class="player-table"><thead><tr><th>Nama Atlet</th><th>Total</th><th>Sukses</th><th>Gagal</th><th>Akurasi</th></tr></thead><tbody>${rows}</tbody></table>`;
+        } else {
+          playerTableContainer.innerHTML = '';
+        }
+
+        if (jobId) {
+          const previewUrl = `/api/manual-count/preview/${jobId}?t=${Date.now()}`;
+          const src = resultVideo.querySelector('source');
+          src.src = previewUrl;
+          src.type = 'video/mp4';
+          resultVideo.load();
+          resultVideo.onloadeddata = () => showToast('Video siap ditinjau');
+          resultVideo.play().catch(() => { });
+          downloadBtn.href = previewUrl;
+          downloadBtn.download = `manual_${jobId}.mp4`;
+        }
+
+        $('edit-result-btn').classList.add('hidden');
+
+        try {
+          const cr = await fetch('/api/footprint/counted');
+          if (cr.ok) { const cj = await cr.json(); countedFootprints = cj.counted || []; }
+        } catch (ce) { }
+
+      } catch (e) {
+        console.error('[DEBUG] Manual submit error:', e);
+        showToast(e.message, 'error');
+      } finally {
+        submitManualBtn.disabled = false;
+        submitManualBtn.innerHTML = '<i class="fas fa-check"></i> Simpan Penilaian Pelatih';
+      }
+    });
+
+  </script>
+</body>
+
+</html>

@@ -1,1 +1,8 @@
 media/
+*.pt
+*.pkl
+__pycache__/
+*.py[cod]
+static/uploads/*
+static/outputs/*
+static/stubs/*

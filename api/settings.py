@@ -11,9 +11,23 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
+import os
+import sys
+import importlib.util
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Auto-fallback: use ML packages from Football-analysis-api venv if available
+if not importlib.util.find_spec("ultralytics"):
+    # Force psycopg2 for Django DB backend to prevent psycopg3 conflict
+    sys.modules["psycopg"] = None
+    _fb_sp = r"C:\Users\acer\Documents\Football-analysis-api\venv\Lib\site-packages"
+    if os.path.exists(_fb_sp) and _fb_sp not in sys.path:
+        sys.path.append(_fb_sp)
+
+
+
 
 
 # Quick-start development settings - unsuitable for production
@@ -92,6 +106,7 @@ INSTALLED_APPS = [
     "wilayah",
     "dashboard",
     "integration",
+    "analysis",
 ]
 
 MIDDLEWARE = [
@@ -186,19 +201,26 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, "static"),
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-import os
-
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# Football Analysis config
+ANALYSIS_MODEL_PATH = os.path.join(BASE_DIR, "static", "models", "best.pt")
+ANALYSIS_MODEL_PATH_PASSING = os.path.join(BASE_DIR, "static", "models", "passing.pt")
+ANALYSIS_UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "uploads")
+ANALYSIS_OUTPUT_FOLDER = os.path.join(BASE_DIR, "static", "outputs")
+ANALYSIS_STUBS_FOLDER = os.path.join(BASE_DIR, "static", "stubs")
+
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [

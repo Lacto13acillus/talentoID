@@ -1,0 +1,1811 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>talentoID : Riwayat Sesi Analisis Atletik</title>
+  <meta name="description" content="Database riwayat komprehensif performa dan hasil counting latihan atletik sepak bola talentoID.">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #0b0f14;
+      --bg-panel: #111722;
+      --bg-surface: #16202c;
+      --bg-surface-hover: #1e2b3b;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --border-focus: rgba(16, 185, 129, 0.4);
+      --primary: #10b981;
+      --primary-hover: #059669;
+      --primary-dim: rgba(16, 185, 129, 0.12);
+      --purple: #8b5cf6;
+      --purple-dim: rgba(139, 92, 246, 0.12);
+      --danger: #ef4444;
+      --danger-dim: rgba(239, 68, 68, 0.12);
+      --warning: #f59e0b;
+      --warning-dim: rgba(245, 158, 11, 0.12);
+      --info: #38bdf8;
+      --text-main: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --shadow-panel: 0 16px 36px -8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    *:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 3px;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background-color: var(--bg-base);
+    }
+
+    body {
+      font-family: var(--font-display);
+      background: var(--bg-base);
+      color: var(--text-main);
+      line-height: 1.55;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Micro-noise texture for digital depth */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* ── Tactical Navigation Bar ── */
+    header {
+      background: rgba(11, 15, 20, 0.85);
+      padding: 0.9rem 2rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #10b981, #047857);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+      color: #fff;
+      font-size: 1.15rem;
+    }
+
+    .brand-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .brand-title .accent-id {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .brand-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.3rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .nav-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .nav-link:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-link.active {
+      color: var(--primary);
+      background: var(--primary-dim);
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.4rem 0.85rem;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .status-pulse {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* ── Main Layout Canvas ── */
+    main {
+      flex: 1;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    /* ── Page Hero ── */
+    .page-hero {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .hero-title-group h2 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .hero-title-group h2 i {
+      color: var(--primary);
+    }
+
+    .hero-title-group p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      margin-top: 0.25rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    .tactical-btn {
+      background: var(--bg-surface);
+      color: var(--text-main);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.55rem 1.1rem;
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tactical-btn:hover {
+      background: var(--bg-surface-hover);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .tactical-btn:active {
+      transform: translateY(1px);
+    }
+
+    .tactical-btn.spinning i {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Tactical Table Container ── */
+    .tactical-card {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-panel);
+      position: relative;
+    }
+
+    .table-toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .tt-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--text-main);
+    }
+
+    .tt-title i {
+      color: var(--primary);
+    }
+
+    .row-count-badge {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      padding: 0.2rem 0.6rem;
+      border-radius: 99px;
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* ── Filter Command Bar ── */
+    .filter-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) auto;
+      gap: 0.85rem;
+      align-items: flex-end;
+      padding: 1.15rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .filter-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .filter-select {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-main);
+      padding: 0.6rem 0.85rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+      cursor: pointer;
+      transition: border 0.2s;
+    }
+
+    .filter-select:focus {
+      border-color: var(--primary);
+    }
+
+    .filter-reset {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.6rem 1rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      height: 38px;
+      transition: all 0.2s;
+    }
+
+    .filter-reset:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ── Table Styling ── */
+    .table-scroll {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      background: var(--bg-panel);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+      text-align: left;
+    }
+
+    thead th {
+      background: var(--bg-surface);
+      padding: 0.85rem 1rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-subtle);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+
+    thead th:hover {
+      color: var(--text-main);
+    }
+
+    thead th.sorted {
+      color: var(--primary);
+    }
+
+    .sort-icon {
+      font-size: 0.72rem;
+      margin-left: 0.3rem;
+      color: var(--text-muted);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      transition: background 0.18s;
+    }
+
+    tbody tr:hover {
+      background: rgba(255, 255, 255, 0.025);
+    }
+
+    tbody tr.expanded {
+      background: rgba(16, 185, 129, 0.03);
+      border-bottom-color: rgba(16, 185, 129, 0.2);
+    }
+
+    tbody td {
+      padding: 0.85rem 1rem;
+      vertical-align: middle;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Club cell */
+    .club-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .club-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      object-fit: cover;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .club-logo-placeholder {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .club-name {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .club-cat {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Badges */
+    .cat-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: capitalize;
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--info);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .cat-badge.passing {
+      background: var(--primary-dim);
+      color: var(--primary);
+      border-color: rgba(16, 185, 129, 0.25);
+    }
+
+    .cat-badge.heading {
+      background: var(--purple-dim);
+      color: var(--purple);
+      border-color: rgba(139, 92, 246, 0.25);
+    }
+
+    .cat-badge.dribbling {
+      background: var(--warning-dim);
+      color: var(--warning);
+      border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .status-badge.generated {
+      background: var(--primary-dim);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .status-badge.edited {
+      background: var(--warning-dim);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+    }
+
+    .type-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .type-badge.by-admin {
+      background: var(--purple-dim);
+      color: var(--purple);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+    }
+
+    .type-badge.auto-type {
+      background: var(--primary-dim);
+      color: var(--primary);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .type-badge.manual-type {
+      background: rgba(56, 189, 248, 0.1);
+      color: var(--info);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+    }
+
+    .stat-val {
+      font-weight: 700;
+      font-size: 0.92rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat-val.success {
+      color: var(--primary);
+    }
+
+    .stat-val.fail {
+      color: var(--danger);
+    }
+
+    .stat-val.accuracy {
+      color: var(--warning);
+    }
+
+    /* Actions in table row */
+    .actions {
+      display: flex;
+      gap: 0.45rem;
+      align-items: center;
+    }
+
+    .action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.82rem;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .action-btn:hover:not(.disabled) {
+      background: var(--bg-surface-hover);
+      color: var(--text-main);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .action-btn.video-btn:hover:not(.disabled) {
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--info);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .action-btn.yt-btn:hover:not(.disabled) {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ff4d4d;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .action-btn.detail-btn:hover:not(.disabled) {
+      background: var(--primary-dim);
+      color: var(--primary);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .action-btn.disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    /* Expanded inner */
+    .expand-row td {
+      padding: 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .expand-inner {
+      padding: 1.25rem 1.75rem;
+      background: rgba(0, 0, 0, 0.25);
+      animation: fadeIn 0.25s ease;
+    }
+
+    .exp-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .exp-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    .exp-table th {
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      padding: 0.45rem 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+      background: transparent;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .exp-table td {
+      padding: 0.55rem 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+    }
+
+    .no-players {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      font-style: italic;
+      padding: 0.5rem 0;
+    }
+
+    /* Empty state & Loading */
+    .state-box {
+      padding: 4rem 2rem;
+      text-align: center;
+      color: var(--text-secondary);
+    }
+
+    .state-box i {
+      font-size: 2.4rem;
+      color: var(--border-subtle);
+      display: block;
+      margin-bottom: 0.85rem;
+    }
+
+    /* ── Modals ── */
+    .modal-overlay,
+    .yt-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-overlay.hidden,
+    .yt-modal-overlay.hidden {
+      display: none;
+    }
+
+    .modal-box,
+    .yt-modal-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: min(880px, 95vw);
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.7);
+      overflow: hidden;
+    }
+
+    .modal-header,
+    .yt-modal-header {
+      padding: 1.1rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title,
+    .yt-modal-title {
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-main);
+    }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .modal-close:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .modal-body,
+    .yt-modal-body {
+      padding: 1.5rem;
+    }
+
+    .modal-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.85rem;
+      margin-bottom: 1.25rem;
+      padding: 1rem;
+      background: var(--bg-surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .modal-meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .modal-meta-item .mm-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .modal-meta-item .mm-val {
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .video-wrap {
+      background: #000;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      aspect-ratio: 16/9;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .no-video {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 240px;
+      color: var(--text-muted);
+      gap: 0.75rem;
+    }
+
+    .no-video i {
+      font-size: 2.2rem;
+    }
+
+    /* YouTube Modal specifics */
+    .yt-info-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg-surface);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .yt-info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .yt-info-label {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .yt-info-val {
+      font-size: 0.84rem;
+      font-weight: 700;
+    }
+
+    .yt-form-group {
+      margin-bottom: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .yt-form-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .yt-form-input,
+    .yt-form-textarea {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+    }
+
+    .yt-form-input:focus,
+    .yt-form-textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .yt-modal-footer {
+      padding: 1.1rem 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .yt-btn-cancel {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: var(--text-secondary);
+      padding: 0.6rem 1.2rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .yt-btn-upload {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      border: none;
+      color: #fff;
+      padding: 0.6rem 1.4rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.84rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .yt-auth-warning {
+      background: var(--warning-dim);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      padding: 0.75rem 1rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.82rem;
+      color: var(--warning);
+    }
+
+    .yt-auth-btn {
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--warning);
+      padding: 0.35rem 0.85rem;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      margin-left: auto;
+    }
+
+    .yt-upload-status {
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.84rem;
+      margin-top: 1rem;
+    }
+
+    .yt-upload-status.uploading {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      color: var(--info);
+    }
+
+    .yt-upload-status.success {
+      background: var(--primary-dim);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--primary);
+    }
+
+    .yt-upload-status.error {
+      background: var(--danger-dim);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      color: var(--danger);
+    }
+
+    /* Toast System */
+    #toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-subtle);
+      border-left: 4px solid var(--primary);
+      padding: 0.9rem 1.25rem;
+      border-radius: var(--radius-sm);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      min-width: 280px;
+      font-size: 0.86rem;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .toast.error {
+      border-left-color: var(--danger);
+    }
+
+    .toast i {
+      color: var(--primary);
+    }
+
+    .toast.error i {
+      color: var(--danger);
+    }
+
+    /* Utility */
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 1.75rem 2rem;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      border-top: 1px solid var(--border-subtle);
+      background: var(--bg-base);
+    }
+
+    @media (max-width: 800px) {
+      .filter-bar {
+        grid-template-columns: 1fr;
+      }
+      .yt-info-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="/" class="brand-link">
+      <div class="brand-badge"><i class="fas fa-futbol"></i></div>
+      <div class="brand-text">
+        <div class="brand-title">talento<span class="accent-id">ID</span></div>
+        <div class="brand-sub">Sports Performance Intelligence</div>
+      </div>
+    </a>
+    <div class="header-right">
+      <nav class="nav-links">
+        <a href="/" class="nav-link"><i class="fas fa-chart-line"></i> Analysis</a>
+        <a href="/history" class="nav-link active"><i class="fas fa-clock-rotate-left"></i> History</a>
+        <a href="/integrations" class="nav-link"><i class="fas fa-satellite-dish"></i> Wearables & Radar</a>
+      </nav>
+      <div class="system-status">
+        <div class="status-pulse"></div>
+        <span>Database Synced</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-hero">
+      <div class="hero-title-group">
+        <h2><i class="fas fa-database"></i> Riwayat Sesi Analisis Atletik</h2>
+        <p>Arsip catatan performa latihan, distribusi statistik atlet, dan rekaman video beranotasi.</p>
+      </div>
+      <div class="hero-actions">
+        <button class="tactical-btn" id="refresh-btn" onclick="loadData()">
+          <i class="fas fa-rotate-right" id="refresh-icon"></i> Refresh Database
+        </button>
+      </div>
+    </div>
+
+    <section class="tactical-card">
+      <div class="table-toolbar">
+        <div class="tt-title">
+          <i class="fas fa-list-check"></i>
+          Sesi Terverifikasi
+          <span class="row-count-badge" id="row-count">0</span>
+        </div>
+      </div>
+
+      <!-- Filter Command Bar -->
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label class="filter-label"><i class="fas fa-shield-halved"></i> Tim / Club</label>
+          <select class="filter-select" id="filter-club" onchange="applyFilters()">
+            <option value="">Semua Club</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label"><i class="fas fa-dumbbell"></i> Nama Latihan</label>
+          <select class="filter-select" id="filter-training" onchange="applyFilters()">
+            <option value="">Semua Latihan</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label"><i class="fas fa-tags"></i> Kategori Model</label>
+          <select class="filter-select" id="filter-category" onchange="applyFilters()">
+            <option value="">Semua Kategori</option>
+          </select>
+        </div>
+        <button class="filter-reset" id="filter-reset" onclick="resetFilters()">
+          <i class="fas fa-xmark"></i> Reset Filter
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="table-loading" class="state-box" style="display:none">
+        <i class="fas fa-spinner fa-spin"></i>
+        <p>Sinkronisasi data riwayat analisis...</p>
+      </div>
+
+      <!-- Data Table -->
+      <div class="table-scroll" id="table-container" style="display:none">
+        <table id="history-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('club_name')">Klub / Tim <span class="sort-icon" id="sort-club_name">↕</span></th>
+              <th onclick="sortTable('training_name')">Sesi Latihan <span class="sort-icon" id="sort-training_name">↕</span></th>
+              <th onclick="sortTable('category')">Kategori <span class="sort-icon" id="sort-category">↕</span></th>
+              <th onclick="sortTable('total_passing')">Total <span class="sort-icon" id="sort-total_passing">↕</span></th>
+              <th onclick="sortTable('passing_sukses')">Sukses <span class="sort-icon" id="sort-passing_sukses">↕</span></th>
+              <th onclick="sortTable('passing_gagal')">Gagal <span class="sort-icon" id="sort-passing_gagal">↕</span></th>
+              <th onclick="sortTable('akurasi_passing')">Akurasi <span class="sort-icon" id="sort-akurasi_passing">↕</span></th>
+              <th onclick="sortTable('status')">Status <span class="sort-icon" id="sort-status">↕</span></th>
+              <th onclick="sortTable('type')">Metode <span class="sort-icon" id="sort-type">↕</span></th>
+              <th onclick="sortTable('analyzed_at')">Waktu Uji <span class="sort-icon" id="sort-analyzed_at">↕</span></th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- Video Review Modal -->
+  <div class="modal-overlay hidden" id="video-modal" onclick="closeModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fas fa-circle-play" style="color:var(--primary)"></i>
+          <span id="modal-title-text">Peninjauan Video Rekaman</span>
+        </div>
+        <button class="modal-close" onclick="closeVideoModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta" id="modal-meta"></div>
+        <div class="video-wrap" id="video-wrap">
+          <div class="no-video" id="no-video-msg">
+            <i class="fas fa-video-slash"></i>
+            <p>Video beranotasi belum tersedia untuk sesi ini</p>
+          </div>
+          <video id="modal-video" controls playsinline preload="metadata" style="display:none">
+            <source src="" type="video/mp4">
+          </video>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- YouTube Upload Modal -->
+  <div class="yt-modal-overlay hidden" id="yt-upload-modal" onclick="closeYtModal(event)">
+    <div class="yt-modal-box" onclick="event.stopPropagation()">
+      <div class="yt-modal-header">
+        <div class="yt-modal-title"><i class="fab fa-youtube" style="color:#ef4444"></i> Publikasi ke YouTube</div>
+        <button class="modal-close" onclick="closeYtUploadModal()"><i class="fas fa-xmark"></i></button>
+      </div>
+      <div class="yt-modal-body">
+        <div class="yt-auth-warning hidden" id="yt-auth-warning">
+          <i class="fas fa-triangle-exclamation"></i>
+          <span id="yt-auth-msg">Akun belum terotentikasi Google.</span>
+          <button class="yt-auth-btn" onclick="triggerYtAuth()"><i class="fas fa-arrow-right-to-bracket"></i> Login Google</button>
+        </div>
+
+        <div class="yt-info-row" id="yt-info-row">
+          <div class="yt-info-item">
+            <span class="yt-info-label">Club</span>
+            <span class="yt-info-val" id="yt-info-club">-</span>
+          </div>
+          <div class="yt-info-item">
+            <span class="yt-info-label">Latihan</span>
+            <span class="yt-info-val" id="yt-info-training">-</span>
+          </div>
+          <div class="yt-info-item">
+            <span class="yt-info-label">Kategori</span>
+            <span class="yt-info-val" id="yt-info-category">-</span>
+          </div>
+          <div class="yt-info-item">
+            <span class="yt-info-label">Akurasi</span>
+            <span class="yt-info-val" id="yt-info-accuracy" style="color:var(--warning)">-</span>
+          </div>
+        </div>
+
+        <div class="yt-form-group">
+          <label class="yt-form-label">Judul Publikasi Video</label>
+          <input type="text" class="yt-form-input" id="yt-title" placeholder="Judul video di YouTube" maxlength="100">
+        </div>
+        <div class="yt-form-group">
+          <label class="yt-form-label">Deskripsi Telemetri</label>
+          <textarea class="yt-form-textarea" id="yt-description" placeholder="Deskripsi statistik..." rows="4"></textarea>
+        </div>
+        <div class="yt-form-group">
+          <label class="yt-form-label">Privasi Video</label>
+          <div style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.5rem 0.85rem;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.2);border-radius:var(--radius-sm);font-size:0.82rem;color:var(--info);">
+            <i class="fas fa-link"></i> Unlisted (Hanya dapat diakses melalui link)
+          </div>
+          <input type="hidden" id="yt-privacy" value="unlisted">
+        </div>
+
+        <div id="yt-upload-status" style="display:none"></div>
+      </div>
+      <div class="yt-modal-footer">
+        <button class="yt-btn-cancel" onclick="closeYtUploadModal()">Batal</button>
+        <button class="yt-btn-upload" id="yt-btn-upload" onclick="confirmYtUpload()">
+          <i class="fab fa-youtube"></i> Upload Video
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <footer>
+    &copy; 2026 talentoID : Sports Talent Identification & Athlete Performance System
+  </footer>
+
+  <script>
+    let allRows = [];
+    let filteredRows = [];
+    let sortKey = 'analyzed_at';
+    let sortAsc = false;
+    let expandedRow = null;
+
+    const $ = id => document.getElementById(id);
+    const toast = (msg, type = 'success') => {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<i class="fas ${type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'}"></i> ${msg}`;
+      $('toast-container').appendChild(t);
+      setTimeout(() => t.remove(), 4000);
+    };
+    const hidden = el => el.classList.add('hidden');
+    const show = el => el.classList.remove('hidden');
+
+    async function loadData() {
+      const btn = $('refresh-btn');
+      btn.classList.add('spinning');
+
+      $('table-loading').style.display = '';
+      $('table-container').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/history/table');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal memuat data');
+
+        allRows = data.rows || [];
+        populateFilters(data.filters || {});
+        applyFilters();
+        toast(`${allRows.length} sesi berhasil disinkronkan`);
+      } catch (e) {
+        toast(e.message, 'error');
+        $('table-loading').style.display = 'none';
+        $('table-container').style.display = '';
+        $('history-tbody').innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--danger);padding:3rem 1rem;"><i class="fas fa-triangle-exclamation" style="display:block;font-size:2rem;margin-bottom:0.5rem;"></i>Gagal memuat data: ${e.message}</td></tr>`;
+      } finally {
+        btn.classList.remove('spinning');
+      }
+    }
+
+    function populateFilters(filters) {
+      const populate = (selectId, items) => {
+        const sel = $(selectId);
+        const current = sel.value;
+        sel.innerHTML = `<option value="">Semua</option>`;
+        items.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item; opt.textContent = item;
+          sel.appendChild(opt);
+        });
+        if (current && items.includes(current)) sel.value = current;
+      };
+      populate('filter-club', filters.clubs || []);
+      populate('filter-training', filters.trainings || []);
+      populate('filter-category', filters.categories || []);
+    }
+
+    function applyFilters() {
+      const club = $('filter-club').value;
+      const training = $('filter-training').value;
+      const category = $('filter-category').value;
+
+      filteredRows = allRows.filter(r => {
+        if (club && r.club_name !== club) return false;
+        if (training && r.training_name !== training) return false;
+        if (category && r.category !== category) return false;
+        return true;
+      });
+
+      sortRows();
+      renderTable();
+    }
+
+    function resetFilters() {
+      $('filter-club').value = '';
+      $('filter-training').value = '';
+      $('filter-category').value = '';
+      applyFilters();
+    }
+
+    function sortTable(key) {
+      if (sortKey === key) { sortAsc = !sortAsc; }
+      else { sortKey = key; sortAsc = false; }
+
+      document.querySelectorAll('th').forEach(th => th.classList.remove('sorted'));
+      const icon = $(`sort-${key}`);
+      if (icon) {
+        icon.closest('th').classList.add('sorted');
+        icon.textContent = sortAsc ? '↑' : '↓';
+      }
+      sortRows();
+      renderTable();
+    }
+
+    function sortRows() {
+      filteredRows.sort((a, b) => {
+        let va = a[sortKey] ?? '';
+        let vb = b[sortKey] ?? '';
+        if (['total_passing', 'passing_sukses', 'passing_gagal'].includes(sortKey)) {
+          va = Number(va) || 0; vb = Number(vb) || 0;
+        } else if (sortKey === 'akurasi_passing') {
+          va = parseFloat(String(va)) || 0;
+          vb = parseFloat(String(vb)) || 0;
+        }
+        if (va < vb) return sortAsc ? -1 : 1;
+        if (va > vb) return sortAsc ? 1 : -1;
+        return 0;
+      });
+    }
+
+    function getTypeBadge(type) {
+      if (!type) return '<span style="color:var(--text-muted);font-size:0.75rem;">-</span>';
+      const t = type.toLowerCase();
+      if (t === 'by admin') return '<span class="type-badge by-admin"><i class="fas fa-hand-pointer"></i> By Admin</span>';
+      if (t === 'auto') return '<span class="type-badge auto-type"><i class="fas fa-robot"></i> Auto</span>';
+      if (t === 'manual') return '<span class="type-badge manual-type"><i class="fas fa-keyboard"></i> Manual</span>';
+      return `<span class="type-badge auto-type"><i class="fas fa-microchip"></i> ${type}</span>`;
+    }
+
+    function renderTable() {
+      const tbody = $('history-tbody');
+      $('table-loading').style.display = 'none';
+      $('row-count').textContent = filteredRows.length;
+
+      if (filteredRows.length === 0) {
+        $('table-container').style.display = '';
+        tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;color:var(--text-secondary);padding:3rem 1rem;"><i class="fas fa-folder-open" style="display:block;font-size:2rem;margin-bottom:0.5rem;color:var(--text-muted)"></i>Tidak ada data yang sesuai dengan filter pencarian</td></tr>`;
+        return;
+      }
+
+      $('table-container').style.display = '';
+
+      let html = '';
+      filteredRows.forEach((row, idx) => {
+        const dateStr = row.analyzed_at
+          ? new Date(row.analyzed_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+          : '-';
+
+        const logoHTML = row.club_logo
+          ? `<img class="club-logo" src="${row.club_logo}" alt="${row.club_name}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">`
+          : '';
+        const logoFallback = `<div class="club-logo-placeholder" style="${row.club_logo ? 'display:none' : ''}"><i class="fas fa-shield-halved"></i></div>`;
+
+        const catClass = (row.category || '').toLowerCase().includes('passing') ? 'passing'
+          : (row.category || '').toLowerCase().includes('heading') ? 'heading'
+            : (row.category || '').toLowerCase().includes('dribbl') ? 'dribbling'
+              : '';
+
+        const statusClass = row.status === 'generated' ? 'generated' : 'edited';
+        const statusIcon = row.status === 'generated' ? 'fa-wand-magic-sparkles' : 'fa-pen';
+        const statusLabel = row.status === 'generated' ? 'Original' : 'Edited';
+
+        const hasVideo = !!row.media_after;
+        const videoBtnClass = hasVideo ? 'video-btn' : 'video-btn disabled';
+        const hasPlayers = (row.player_results || []).length > 0;
+
+        html += `
+          <tr id="main-row-${idx}" onclick="toggleDetail(${idx})" style="cursor:pointer">
+            <td>
+              <div class="club-cell">
+                ${logoHTML}${logoFallback}
+                <div>
+                  <div class="club-name">${row.club_name || '<span style="color:var(--text-muted);">-</span>'}</div>
+                  <div class="club-cat">${row.club_category || ''}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div style="font-weight:700">${row.training_name || '<span style="color:var(--text-muted);">-</span>'}</div>
+              ${row.training_date ? `<div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.1rem"><i class="fas fa-calendar-days" style="margin-right:3px"></i>${row.training_date}</div>` : ''}
+            </td>
+            <td><span class="cat-badge ${catClass}">${row.category || '-'}</span></td>
+            <td><span class="stat-val">${row.total_passing ?? '-'}</span></td>
+            <td><span class="stat-val success">${row.passing_sukses ?? '-'}</span></td>
+            <td><span class="stat-val fail">${row.passing_gagal ?? '-'}</span></td>
+            <td><span class="stat-val accuracy">${row.akurasi_passing || '-'}</span></td>
+            <td><span class="status-badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusLabel}</span></td>
+            <td>${getTypeBadge(row.type)}</td>
+            <td style="white-space:nowrap;font-size:0.8rem;color:var(--text-secondary)">${dateStr}</td>
+            <td>
+              <div class="actions" onclick="event.stopPropagation()">
+                <button class="action-btn ${videoBtnClass}" title="${hasVideo ? 'Tonton Video' : 'Video belum tersedia'}" onclick="openVideo(${idx})">
+                  <i class="fas fa-video"></i>
+                </button>
+                <button class="action-btn yt-btn ${hasVideo ? '' : 'disabled'}" title="${hasVideo ? 'Upload ke YouTube' : 'Video belum tersedia'}" onclick="openYtUpload(${idx})" id="yt-row-btn-${idx}">
+                  <i class="fab fa-youtube"></i>
+                </button>
+                <button class="action-btn detail-btn" title="Statistik Atlet" onclick="toggleDetail(${idx})">
+                  <i class="fas fa-chevron-down" id="chevron-${idx}"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr class="expand-row" id="expand-row-${idx}" style="display:none">
+            <td colspan="11">
+              <div class="expand-inner">
+                ${hasPlayers ? buildPlayerTable(row.player_results) : '<p class="no-players"><i class="fas fa-circle-info"></i> Tidak ada rincian per pemain untuk sesi ini.</p>'}
+              </div>
+            </td>
+          </tr>`;
+      });
+
+      tbody.innerHTML = html;
+    }
+
+    function buildPlayerTable(players) {
+      let rows = '';
+      players.forEach(p => {
+        rows += `<tr>
+          <td style="font-weight:700">${p.player || '-'}</td>
+          <td>${p.total_passing ?? 0}</td>
+          <td style="color:var(--primary);font-weight:700">${p.passing_sukses ?? 0}</td>
+          <td style="color:var(--danger);font-weight:700">${p.passing_gagal ?? 0}</td>
+          <td style="color:var(--warning);font-weight:700">${p.akurasi_passing || '0%'}</td>
+        </tr>`;
+      });
+      return `
+        <div class="exp-title"><i class="fas fa-users-viewfinder"></i> Rincian Atletik Per Pemain</div>
+        <table class="exp-table">
+          <thead><tr><th>Nama Atlet</th><th>Total Passing</th><th>Sukses</th><th>Gagal</th><th>Akurasi</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    function toggleDetail(idx) {
+      const row = $(`main-row-${idx}`);
+      const expandRow = $(`expand-row-${idx}`);
+      const chevron = $(`chevron-${idx}`);
+      const isOpen = expandRow.style.display !== 'none';
+
+      if (expandedRow !== null && expandedRow !== idx) {
+        const prev = $(`expand-row-${expandedRow}`);
+        const prevChev = $(`chevron-${expandedRow}`);
+        const prevMain = $(`main-row-${expandedRow}`);
+        if (prev) prev.style.display = 'none';
+        if (prevChev) { prevChev.style.transform = ''; prevChev.className = 'fas fa-chevron-down'; }
+        if (prevMain) prevMain.classList.remove('expanded');
+      }
+
+      if (isOpen) {
+        expandRow.style.display = 'none';
+        chevron.style.transform = '';
+        row.classList.remove('expanded');
+        expandedRow = null;
+      } else {
+        expandRow.style.display = '';
+        chevron.style.transform = 'rotate(180deg)';
+        row.classList.add('expanded');
+        expandedRow = idx;
+      }
+    }
+
+    function openVideo(idx) {
+      const row = filteredRows[idx];
+      if (!row) return;
+
+      const modal = $('video-modal');
+      const video = $('modal-video');
+      const noMsg = $('no-video-msg');
+      const meta = $('modal-meta');
+      const titleEl = $('modal-title-text');
+
+      titleEl.textContent = `${row.training_name || 'Latihan'} : ${row.category || ''}`;
+
+      const dateStr = row.analyzed_at
+        ? new Date(row.analyzed_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '-';
+
+      meta.innerHTML = `
+        <div class="modal-meta-item">
+          <span class="mm-label">Club</span>
+          <span class="mm-val">${row.club_name || '-'}</span>
+        </div>
+        <div class="modal-meta-item">
+          <span class="mm-label">Latihan</span>
+          <span class="mm-val">${row.training_name || '-'}</span>
+        </div>
+        <div class="modal-meta-item">
+          <span class="mm-label">Kategori</span>
+          <span class="mm-val" style="text-transform:capitalize">${row.category || '-'}</span>
+        </div>
+        <div class="modal-meta-item">
+          <span class="mm-label">Tanggal Uji</span>
+          <span class="mm-val">${dateStr}</span>
+        </div>
+        <div class="modal-meta-item">
+          <span class="mm-label">Akurasi</span>
+          <span class="mm-val" style="color:var(--warning)">${row.akurasi_passing || '-'}</span>
+        </div>`;
+
+      if (row.media_after) {
+        video.querySelector('source').src = row.media_after;
+        video.load();
+        video.style.display = '';
+        noMsg.style.display = 'none';
+      } else {
+        video.style.display = 'none';
+        noMsg.style.display = '';
+      }
+
+      show(modal);
+    }
+
+    function closeVideoModal() {
+      const modal = $('video-modal');
+      const video = $('modal-video');
+      video.pause();
+      video.querySelector('source').src = '';
+      hidden(modal);
+    }
+
+    function closeModal(e) {
+      if (e.target === $('video-modal')) closeVideoModal();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeVideoModal();
+        closeYtUploadModal();
+      }
+    });
+
+    let ytUploadIdx = null;
+    let ytAuthenticated = false;
+
+    async function checkYtAuth() {
+      try {
+        const res = await fetch('/api/youtube/auth-status?_t=' + Date.now());
+        const data = await res.json();
+        ytAuthenticated = data.authenticated;
+        return data;
+      } catch (e) {
+        return { authenticated: false, message: 'Gagal mengecek status otentikasi' };
+      }
+    }
+
+    async function openYtUpload(idx) {
+      const row = filteredRows[idx];
+      if (!row || !row.media_after) return;
+
+      ytUploadIdx = idx;
+
+      $('yt-info-club').textContent = row.club_name || '-';
+      $('yt-info-training').textContent = row.training_name || '-';
+      $('yt-info-category').textContent = row.category || '-';
+      $('yt-info-accuracy').textContent = row.akurasi_passing || '-';
+
+      const parts = [];
+      if (row.club_name) parts.push(row.club_name);
+      if (row.training_name) parts.push(row.training_name);
+      if (row.category) parts.push(row.category);
+      if (row.analyzed_at) {
+        const d = new Date(row.analyzed_at);
+        parts.push(d.toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }));
+      }
+      $('yt-title').value = parts.join(' : ') || 'Analisis Latihan Sepak Bola talentoID';
+
+      let desc = '⚽ talentoID Sports Intelligence : Video Hasil Counting\n\n';
+      desc += '📊 Statistik Analisis:\n';
+      desc += `  • Total Passing: ${row.total_passing ?? 0}\n`;
+      desc += `  • Passing Sukses: ${row.passing_sukses ?? 0}\n`;
+      desc += `  • Passing Gagal: ${row.passing_gagal ?? 0}\n`;
+      desc += `  • Akurasi: ${row.akurasi_passing || '0%'}\n`;
+      if (row.player_results && row.player_results.length > 0) {
+        desc += '\n👥 Statistik Per Pemain:\n';
+        row.player_results.forEach(p => {
+          desc += `  • ${p.player || 'Unknown'}: ${p.passing_sukses ?? 0}/${p.total_passing ?? 0} (${p.akurasi_passing || '0%'})\n`;
+        });
+      }
+      desc += `\n📌 Kategori: ${row.category || '-'}`;
+      $('yt-description').value = desc;
+      $('yt-privacy').value = 'unlisted';
+
+      const statusEl = $('yt-upload-status');
+      statusEl.style.display = 'none';
+      statusEl.innerHTML = '';
+      $('yt-btn-upload').disabled = false;
+
+      const authStatus = await checkYtAuth();
+      const authWarn = $('yt-auth-warning');
+      if (!authStatus.authenticated) {
+        authWarn.classList.remove('hidden');
+        $('yt-auth-msg').textContent = authStatus.message || 'Belum terhubung ke YouTube.';
+      } else {
+        authWarn.classList.add('hidden');
+      }
+
+      show($('yt-upload-modal'));
+    }
+
+    async function triggerYtAuth() {
+      window.location.href = '/api/youtube/auth';
+    }
+
+    async function confirmYtUpload() {
+      if (ytUploadIdx === null) return;
+      const row = filteredRows[ytUploadIdx];
+      if (!row) return;
+
+      const title = $('yt-title').value.trim();
+      const description = $('yt-description').value.trim();
+      const privacy = $('yt-privacy').value;
+
+      if (!title) {
+        toast('Judul video wajib diisi', 'error');
+        $('yt-title').focus();
+        return;
+      }
+
+      const statusEl = $('yt-upload-status');
+      const uploadBtn = $('yt-btn-upload');
+
+      statusEl.style.display = '';
+      statusEl.className = 'yt-upload-status uploading';
+      statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mengunggah video ke YouTube... Mohon tunggu.</span>';
+      uploadBtn.disabled = true;
+      uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+      const rowBtn = $(`yt-row-btn-${ytUploadIdx}`);
+      if (rowBtn) {
+        rowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+      }
+
+      try {
+        const res = await fetch('/api/youtube/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            footprint_id: row.footprint_id,
+            title: title,
+            description: description,
+            privacy: privacy,
+          }),
+        });
+
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          throw new Error(`Server error (${res.status}). Response bukan JSON.`);
+        }
+
+        const startData = await res.json();
+        if (!res.ok || !startData.success) {
+          throw new Error(startData.error || 'Gagal memulai upload');
+        }
+
+        const jobId = startData.job_id;
+        statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Memproses antrean upload...</span>';
+
+        const result = await new Promise((resolve, reject) => {
+          const pollInterval = setInterval(async () => {
+            try {
+              const pollRes = await fetch(`/api/youtube/upload-status/${jobId}`);
+              const pollData = await pollRes.json();
+
+              if (pollData.status === 'downloading' || pollData.status === 'preparing') {
+                statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Menyiapkan video...</span>';
+              } else if (pollData.status === 'uploading') {
+                statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mengunggah video ke YouTube...</span>';
+              } else if (pollData.status === 'uploading_before') {
+                statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Mengunggah video original...</span>';
+              } else if (pollData.status === 'done') {
+                clearInterval(pollInterval);
+                resolve(pollData.result);
+              } else if (pollData.status === 'error') {
+                clearInterval(pollInterval);
+                reject(new Error(pollData.error || 'Upload gagal'));
+              }
+            } catch (pollErr) {
+              console.warn('[YOUTUBE] Poll error, retrying...', pollErr);
+            }
+          }, 2000);
+
+          setTimeout(() => {
+            clearInterval(pollInterval);
+            reject(new Error('Upload timeout (10 menit).'));
+          }, 10 * 60 * 1000);
+        });
+
+        statusEl.className = 'yt-upload-status success';
+        let successLinks = '';
+        if (result.has_before && result.youtube_url_before) {
+          successLinks = `
+            <div style="display:flex;flex-direction:column;gap:0.4rem;margin-top:0.35rem">
+              <a href="${result.youtube_url_before}" target="_blank" rel="noopener"
+                 style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.75rem;background:var(--primary-dim);border:1px solid rgba(16,185,129,0.3);border-radius:6px;font-size:0.8rem;font-weight:600;color:var(--primary);text-decoration:none">
+                <i class="fab fa-youtube"></i> Video Original
+              </a>
+              <a href="${result.youtube_url_after}" target="_blank" rel="noopener"
+                 style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.75rem;background:rgba(56,189,248,0.1);border:1px solid rgba(56,189,248,0.25);border-radius:6px;font-size:0.8rem;font-weight:600;color:var(--info);text-decoration:none">
+                <i class="fab fa-youtube"></i> Video Beranotasi
+              </a>
+            </div>`;
+        } else {
+          successLinks = `
+            <a href="${result.youtube_url}" target="_blank" rel="noopener"
+               style="display:inline-flex;align-items:center;gap:0.4rem;padding:0.4rem 0.75rem;background:var(--primary-dim);border:1px solid rgba(16,185,129,0.3);border-radius:6px;font-size:0.8rem;font-weight:600;color:var(--primary);text-decoration:none;margin-top:0.35rem">
+              <i class="fab fa-youtube"></i> Tonton di YouTube
+            </a>`;
+        }
+
+        statusEl.innerHTML = `
+          <i class="fas fa-circle-check"></i>
+          <div style="flex:1">
+            <div style="font-weight:700;margin-bottom:0.25rem">Video berhasil di-upload ke YouTube!</div>
+            ${successLinks}
+          </div>`;
+        toast('Video berhasil diunggah ke YouTube!');
+
+        if (rowBtn) {
+          rowBtn.innerHTML = '<i class="fas fa-check"></i>';
+          rowBtn.style.color = 'var(--primary)';
+        }
+      } catch (e) {
+        statusEl.className = 'yt-upload-status error';
+        statusEl.innerHTML = `<i class="fas fa-circle-exclamation"></i> <span>Gagal upload: ${e.message}</span>`;
+        toast(e.message, 'error');
+        if (rowBtn) {
+          rowBtn.innerHTML = '<i class="fab fa-youtube"></i>';
+        }
+      } finally {
+        uploadBtn.innerHTML = '<i class="fab fa-youtube"></i> Upload Video';
+        uploadBtn.disabled = false;
+      }
+    }
+
+    function closeYtUploadModal() {
+      hidden($('yt-upload-modal'));
+      ytUploadIdx = null;
+    }
+
+    function closeYtModal(e) {
+      if (e.target === $('yt-upload-modal')) closeYtUploadModal();
+    }
+
+    loadData();
+  </script>
+</body>
+
+</html>
